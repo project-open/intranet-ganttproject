@@ -29,7 +29,7 @@ set today [db_string today "select to_char(now(), 'YYYY-MM-DD')"]
 
 
 # ---------------------------------------------------------------
-# Procedures
+# Procedure: Dependency
 # ---------------------------------------------------------------
 
 ad_proc -public im_ganttproject_depend { depend_node task_node } {
@@ -47,28 +47,24 @@ ad_proc -public im_ganttproject_depend { depend_node task_node } {
     set difference [$depend_node getAttribute difference]
     set hardness [$depend_node getAttribute hardness]
 
-    set hardness_type_id 0
-    if {[string equal "Hard" $hardness]} {set hardness_type_id 1}
-
-    set map_exists_p [db_string map_exists "select count(*) from im_timesheet_task_dependency_map where task_id_one = :task_id_one and task_id_two = :task_id_two"]
+    set map_exists_p [db_string map_exists "select count(*) from im_timesheet_task_dependencies where task_id_one = :task_id_one and task_id_two = :task_id_two"]
 
     if {!$map_exists_p} {
 	db_dml insert_dependency "
-		insert into im_timesheet_task_dependency_map (
-			task_id_one, task_id_two
-		) values (
-			:task_id_one, :task_id_two
-		)
+		insert into im_timesheet_task_dependencies 
+		(task_id_one, task_id_two) values (:task_id_one, :task_id_two)
  	"
     }
 
+    set dependency_type_id [db_string dependency_type "select category_id from im_categories where category = :depend_type and category_type = 'Intranet Timesheet Task Dependency Type'" -default ""]
+    set hardness_type_id [db_string dependency_type "select category_id from im_categories where category = :hardness and category_type = 'Intranet Timesheet Task Dependency Hardness Type'" -default ""]
+
     db_dml update_dependency "
-	update im_timesheet_task_dependency_map set
-		dependency_type_id = :depend_type,
+	update im_timesheet_task_dependencies set
+		dependency_type_id = :dependency_type_id,
 		difference = :difference,
 		hardness_type_id = :hardness_type_id
-	where
-		task_id_one = :task_id_one
+	where	task_id_one = :task_id_one
 		and task_id_two = :task_id_two
     "
 }
@@ -102,21 +98,15 @@ if {[catch {
     return
 }
 
-
-
-# -------------------------------------------------------------------
-# Process the Outer file
-# -------------------------------------------------------------------
-
 set doc [dom parse $binary_content]
 set root_node [$doc documentElement]
-
-
-# --------- Tasks -----------
-set tasks_node [$root_node selectNodes /project/tasks]
-
 set html ""
 
+# -------------------------------------------------------------------
+# Process Tasks
+# -------------------------------------------------------------------
+
+set tasks_node [$root_node selectNodes /project/tasks]
 
 foreach child [$tasks_node childNodes] {
 
@@ -166,8 +156,61 @@ foreach child [$tasks_node childNodes] {
     }
 }
 
+
+
+# -------------------------------------------------------------------
+# Process Allocations
+# <allocation task-id="12391" resource-id="7" function="Default:0" responsible="true" load="100.0"/>
+# -------------------------------------------------------------------
+
+set allocations_node [$root_node selectNodes /project/allocations]
+
+foreach child [$allocations_node childNodes] {
+
+    switch [$child nodeName] {
+
+	"allocation" {
+
+	    set task_id [$child getAttribute task-id ""]
+	    set resource_id [$child getAttribute resource-id ""]
+	    set function [$child getAttribute function ""]
+	    set responsible [$child getAttribute responsible ""]
+	    set percentage [$child getAttribute load "0"]
+
+	    set allocation_exists_p [db_0or1row allocation_info "select * from im_timesheet_task_allocations where task_id = :task_id and user_id = :resource_id"]
+
+	    set role_id [im_biz_object_role_full_member]
+	    if {[string equal "Default:1" $function]} { 
+		set role_id [im_biz_object_role_project_manager]
+	    }
+
+	    if {!$allocation_exists_p} { 
+		db_dml insert_allocation "
+		insert into im_timesheet_task_allocations (
+			task_id, user_id
+		) values (
+			:task_id, :user_id
+		)"
+	    }
+	    db_dml update_allocation "
+		update im_timesheet_task_allocations set
+			role_id	= [im_biz_object_role_full_member],
+			percentage = :percentage
+		where	task_id = :task_id
+			and user_id = :user_id
+	    "
+	    append html "[ns_quotehtml [$child asXML]]<br>&nbsp;<br>"
+	}
+
+	default { }
+    }
+}
+
+
+
+
 ns_return 200 text/html $html
 
 
-# ns_return 200 text/xml [$tasks_node asXML -indent 2 -escapeNonASCII]
+# ns_return 200 text/xml [$allocations_node asXML -indent 2 -escapeNonASCII]
 

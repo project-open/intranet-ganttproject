@@ -152,7 +152,7 @@ db_foreach project_tasks $project_tasks_sql {
 
     # Add dependencies to predecessors
     set dependency_sql "
-	select * from im_timesheet_task_dependency_map 
+	select * from im_timesheet_task_dependencies 
 	where task_id_one = :task_id
     "
     db_foreach dependency $dependency_sql {
@@ -175,7 +175,6 @@ db_foreach project_tasks $project_tasks_sql {
 set resources_node [$doc createElement resources]
 $project_node appendChild $resources_node
 
-set resource_counter 0
 set project_resources_sql "
 	select	bom.object_role_id,
 		uc.*,
@@ -205,13 +204,11 @@ db_foreach project_resources $project_resources_sql {
     set resource_node [$doc createElement resource]
     $resources_node appendChild $resource_node
 
-    $resource_node setAttribute id $resource_counter
+    $resource_node setAttribute id $user_id
     $resource_node setAttribute name [ns_quotehtml "$first_names $last_name"]
     $resource_node setAttribute function [ns_quotehtml $function]
     $resource_node setAttribute contacts [ns_quotehtml $email]
     $resource_node setAttribute phone [ns_quotehtml [join $phone ", "]]
-
-    incr resource_counter
 }
 
 
@@ -256,6 +253,6 @@ $project_node appendXML "
 "
 
 
-ns_return 200 text/xml [$doc asXML -indent 2 -escapeNonASCII]
+ns_return 200 text/xxx [$doc asXML -indent 2 -escapeNonASCII]
 
 
