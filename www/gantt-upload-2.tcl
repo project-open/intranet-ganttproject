@@ -32,7 +32,7 @@ set today [db_string today "select to_char(now(), 'YYYY-MM-DD')"]
 # Procedure: Dependency
 # ---------------------------------------------------------------
 
-ad_proc -public im_ganttproject_depend { depend_node task_node } {
+ad_proc -public im_ganttproject_create_dependency { depend_node task_node } {
     Stores a dependency between two tasks into the database
     Depend: <depend id="2" type="2" difference="0" hardness="Strong"/>
     Task: <task id="1" name="Linux Installation" ...>
@@ -70,6 +70,108 @@ ad_proc -public im_ganttproject_depend { depend_node task_node } {
 }
 
 
+# ---------------------------------------------------------------
+# Procedure: Tasks
+# ---------------------------------------------------------------
+
+ad_proc -public im_ganttproject_create_task { task_node super_project_id } {
+    Stores a single task into the database
+} {
+    set task_id [$task_node getAttribute id ""]
+    set task_exists_p [db_string task_exists "select count(*) from acs_objects where object_id = :task_id"]
+
+    set task_name [$task_node getAttribute name ""]
+    set start_date [$task_node getAttribute start ""]
+    set duration [$task_node getAttribute duration ""]
+    set percent_completed [$task_node getAttribute complete "0"]
+    set priority [$task_node getAttribute priority ""]
+    set expand_p [$task_node getAttribute expand ""]
+    set description ""
+
+    set end_date [db_string end_date "select :start_date::date + :duration::integer"]
+
+    # Process task sub-nodes
+    foreach taskchild [$task_node childNodes] {
+	switch [$taskchild nodeName] {
+	    notes { set description [$taskchild nodeValue]}
+	    depend { im_ganttproject_create_dependency $taskchild $task_node }
+	    customproperty { }
+	    task {
+		# Recursive sub-tasks
+		im_ganttproject_create_task $taskchild $task_id
+	    }
+	}
+    }
+
+    set task_status_id [im_timesheet_task_status_active]
+    set task_type_id [im_timesheet_task_type_standard]
+    set uom_id [im_uom_hour]
+    set cost_center_id ""
+    set material_id ""
+    set task_nr "task_$task_id"
+
+    if {!$task_exists_p} { 
+	db_1row ttask_insert "
+	select im_timesheet_task__new (
+		:task_id,		-- p_task_id
+		'im_timesheet_task',	-- object_type
+		now(),			-- creation_date
+		null,			-- creation_user
+		null,			-- creation_ip
+		null,			-- context_id
+		:task_nr,
+		:task_name,
+		:super_project_id,
+		:material_id,
+		:cost_center_id,
+		:uom_id,
+		:task_type_id,
+		:task_status_id,
+		:description
+	)"
+    }
+
+    db_dml task_update "
+	update im_timesheet_tasks set
+		task_name	= :task_name,
+		task_nr		= :task_nr,
+		project_id	= :super_project_id,
+		description	= :description
+	where
+		task_id = :task_id"
+
+    db_dml update_task2 "
+	update im_timesheet_tasks set
+		start_date	= :start_date,
+		end_date	= :end_date
+	where task_id = :task_id
+    "
+
+    # Check if this is the child of another task
+    if {"" != $super_project_id} {
+
+	set task_id_one $super_project_id
+	set task_id_two $task_id
+
+	set map_exists_p [db_string map_exists "select count(*) from im_timesheet_task_dependencies where task_id_one = :task_id_one and task_id_two = :task_id_two"]
+	if {!$map_exists_p} {
+	    db_dml insert_super_dependency "
+                insert into im_timesheet_task_dependencies
+                (task_id_one, task_id_two) values (:task_id_one, :task_id_two)
+            "
+	}
+
+	db_dml update_super_dependency "
+	        update im_timesheet_task_dependencies set
+	                dependency_type_id = 9652
+	        where   task_id_one = :task_id_one
+	                and task_id_two = :task_id_two
+        "
+    }
+
+}
+
+
 # -------------------------------------------------------------------
 # Get the file from the user.
 # -------------------------------------------------------------------
@@ -104,55 +206,35 @@ set html ""
 
 # -------------------------------------------------------------------
 # Process Tasks
+# The top task entries should actually be projects, otherwise
+# we return an "incorrect structure" error.
 # -------------------------------------------------------------------
 
 set tasks_node [$root_node selectNodes /project/tasks]
-
+set super_task_node ""
 foreach child [$tasks_node childNodes] {
-
     switch [$child nodeName] {
+	"task" { 
+	    set project_id [$child getAttribute id ""]
+	    set object_type [db_string obj_type "
+		select object_type from acs_objects 
+		where object_id = :project_id" -default "none"]
 
-	"task" {
-
-	    set task_id [$child getAttribute id ""]
-	    set task_exists_p [db_0or1row task_info "select * from im_timesheet_tasks where task_id = :task_id"]
-
-	    set task_name [$child getAttribute name ""]
-	    set start_date [$child getAttribute start ""]
-	    set duration [$child getAttribute duration ""]
-	    set percent_completed [$child getAttribute complete "0"]
-	    set priority [$child getAttribute priority ""]
-	    set expand_p [$child getAttribute expand ""]
-	    set description ""
-
-	    set end_date [db_string end_date "select :start_date::date + :duration::integer"]
-
-	    # Process task sub-nodes
-	    foreach taskchild [$child childNodes] {
-
-		switch [$taskchild nodeName] {
-		    notes { set description [$taskchild nodeValue]}
-		    depend { im_ganttproject_depend $taskchild $child }
-		    customproperty { }
-		}
+	    if {"im_project" != $object_type} {
+		ad_return_complaint 1 "<b>Invalid GanttProject File Structure</b><br>
+		GanttProject files need to contain 'Projects' at the top level of
+		the file. Instead, we have found the type: '$object_type'"
+		return
 	    }
 
-	    if {!$task_exists_p} { db_exec_plsql task_insert {} }
-	    db_dml task_update {}
-	    db_dml update_task2 "
-		update im_timesheet_tasks set
-			start_date = :start_date,
-			end_date = :end_date
-		where task_id = :task_id
-	    "
-
-	    append html "[ns_quotehtml [$child asXML]]<br>&nbsp;<br>"
-	}
-
-	default {
-	    # Probably "taskproperties", but 
-	    # we don't save them yet.
-	}
+	    # Go through sub-tasks
+	    foreach task_child [$child childNodes] {
+	        if {"task" == [$task_child nodeName]} {
+		    im_ganttproject_create_task $task_child $project_id
+		}
+            }
+        }
+	default {}
     }
 }
 
@@ -189,7 +271,7 @@ foreach child [$allocations_node childNodes] {
 		insert into im_timesheet_task_allocations (
 			task_id, user_id
 		) values (
-			:task_id, :user_id
+			:task_id, :resource_id
 		)"
 	    }
 	    db_dml update_allocation "
@@ -197,7 +279,7 @@ foreach child [$allocations_node childNodes] {
 			role_id	= [im_biz_object_role_full_member],
 			percentage = :percentage
 		where	task_id = :task_id
-			and user_id = :user_id
+			and user_id = :resource_id
 	    "
 	    append html "[ns_quotehtml [$child asXML]]<br>&nbsp;<br>"
 	}
