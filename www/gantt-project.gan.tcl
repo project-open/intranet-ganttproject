@@ -74,6 +74,20 @@ ad_proc -public im_ganttproject_write_project_tasks { doc tree_node project_id} 
     $project_node setAttribute priority $priority
     $project_node setAttribute webLink "$project_view_url$project_id"
     $project_node setAttribute expand "true"
+
+    # Custom Property "task_nr"
+    # <customproperty taskproperty-id="tpc0" value="linux_install" />
+    set task_nr_node [$doc createElement customproperty]
+    $project_node appendChild $task_nr_node
+    $task_nr_node setAttribute taskproperty-id tpc0
+    $task_nr_node setAttribute value $project_nr
+    
+    # Custom Property "task_id"
+    # <customproperty taskproperty-id="tpc1" value="12345" />
+    set task_id_node [$doc createElement customproperty]
+    $project_node appendChild $task_id_node
+    $task_id_node setAttribute taskproperty-id tpc1
+    $task_id_node setAttribute value $project_id
     
 
     # ------------ Create the Tasks Below Project -------------
@@ -84,6 +98,7 @@ ad_proc -public im_ganttproject_write_project_tasks { doc tree_node project_id} 
     		(to_char(t.end_date, 'J')::integer - to_char(t.start_date, 'J')::integer) as duration
     	from 	im_timesheet_tasks t
     	where	t.project_id = :project_id
+	order by sort_order
     "
     db_foreach project_tasks $project_tasks_sql {
     
@@ -107,7 +122,21 @@ ad_proc -public im_ganttproject_write_project_tasks { doc tree_node project_id} 
         $task_node setAttribute priority $priority
         $task_node setAttribute webLink "$task_view_url$task_id"
         $task_node setAttribute expand "true"
-    
+
+	# Custom Property "task_nr"
+	# <customproperty taskproperty-id="tpc0" value="linux_install" />
+	set task_nr_node [$doc createElement customproperty]
+	$task_node appendChild $task_nr_node
+	$task_nr_node setAttribute taskproperty-id tpc0
+	$task_nr_node setAttribute value $task_nr
+
+	# Custom Property "task_id"
+	# <customproperty taskproperty-id="tpc1" value="12345" />
+	set task_id_node [$doc createElement customproperty]
+	$task_node appendChild $task_id_node
+	$task_id_node setAttribute taskproperty-id tpc1
+	$task_id_node setAttribute value $task_id
+
         # Add dependencies to predecessors
         set dependency_sql "
 	    	select * from im_timesheet_task_dependencies 
@@ -128,6 +157,7 @@ ad_proc -public im_ganttproject_write_project_tasks { doc tree_node project_id} 
 	select	project_id
 	from	im_projects
 	where	parent_id = :project_id
+		and project_status_id not in ([im_project_status_deleted], [im_project_status_closed])
     "
     db_foreach sub_projects $subproject_sql {
 	# ToDo: Check infinite loop!!!
@@ -164,8 +194,8 @@ set project_url "/intranet/projects/view?project_id=$project_id"
 
 set version "1.12"
 set view_index 0
-set gantt_divider_location 250
-set resource_divider_location 250
+set gantt_divider_location 300
+set resource_divider_location 300
 set zooming_state 6
 
 # ---------------------------------------------------------------
@@ -200,7 +230,8 @@ $tasks_node appendXML "
             <taskproperty id='tpd7' name='completion' type='default' valuetype='int' />
             <taskproperty id='tpd8' name='coordinator' type='default' valuetype='text' />
             <taskproperty id='tpd9' name='predecessors' type='default' valuetype='text' />
-            <taskproperty id='tpd10' name='label' type='default' valuetype='text' />
+	    <taskproperty id='tpc0' name='task_nr' type='custom' valuetype='text' defaultvalue='' />
+	    <taskproperty id='tpc1' name='task_id' type='custom' valuetype='int' defaultvalue='0' />
         </taskproperties>
 "
 
@@ -349,9 +380,14 @@ $project_node appendXML "<description>[ns_quotehtml $note]</description>"
 $project_node appendXML "
     <taskdisplaycolumns>
 	<displaycolumn property-id='tpd3' order='0' width='150' />
+	<displaycolumn property-id='tpc0' order='3' width='80' />
+	<displaycolumn property-id='tpc1' order='4' width='40' />
+    </taskdisplaycolumns>
+"
+
+set date_columns "
 	<displaycolumn property-id='tpd4' order='1' width='30' />
 	<displaycolumn property-id='tpd5' order='2' width='30' />
-    </taskdisplaycolumns>
 "
 
 
