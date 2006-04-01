@@ -417,12 +417,15 @@ ad_proc -public im_gp_save_tasks {
     set tasks_node [$root_node selectNodes /project/tasks]
     set super_task_node ""
 
+    set sort_order 0
+
     # Tricky: The task_hash contains the mapping from gantt_task_id => task_id
     # for both tasks and projects. We have to pass this array around between the
     # recursive calls because TCL doesnt have by-value variables
     array set task_hash $task_hash_array
 
     foreach child [$tasks_node childNodes] {
+	incr sort_order
 	switch [$child nodeName] {
 	    "task" {
 		set task_id [$child getAttribute id ""]
@@ -440,8 +443,15 @@ ad_proc -public im_gp_save_tasks {
 		# Go through sub-tasks
 		ns_write "<h2>Saving Tasks</h2><ul>\n"
 		foreach task_child [$child childNodes] {
+		    incr sort_order
 		    if {"task" == [$task_child nodeName]} {
-			set task_hash_array [im_gp_save_tasks2 -enable_save_dependencies $enable_save_dependencies $task_child $super_project_id [array get task_hash]]
+			set task_hash_array [im_gp_save_tasks2 \
+				-enable_save_dependencies $enable_save_dependencies \
+				$task_child \
+				$super_project_id \
+				$sort_order \
+				[array get task_hash] \
+			]
 			array set task_hash $task_hash_array
 		    }
 		}
@@ -456,10 +466,11 @@ ad_proc -public im_gp_save_tasks {
 
 
 ad_proc -public im_gp_save_tasks2 {
-	-enable_save_dependencies
-	task_node 
-	super_project_id 
-	task_hash_array
+    -enable_save_dependencies
+    task_node 
+    super_project_id 
+    sort_order
+    task_hash_array
 } {
     Stores a single task into the database
 } {
@@ -733,7 +744,8 @@ ad_proc -public im_gp_save_tasks2 {
 		parent_id	= :super_project_id,
 		start_date	= :start_date,
 		end_date	= :end_date,
-		note		= :description
+		note		= :description,
+		sort_order	= :sort_order
 	    where
 		project_id = :task_id
         "
@@ -748,7 +760,8 @@ ad_proc -public im_gp_save_tasks2 {
 		description	= :description,
 		gantt_project_id= :gantt_project_id,
 		start_date	= :start_date,
-		end_date	= :end_date
+		end_date	= :end_date,
+		sort_order	= :sort_order
 	where
 		task_id = :task_id"
     }
@@ -776,6 +789,7 @@ ad_proc -public im_gp_save_tasks2 {
     ns_write "<li>im_gp_save_tasks2 task=$task_name id=$gantt_project_id"
     ns_write "<ul>\n"
     foreach taskchild [$task_node childNodes] {
+	incr sort_order
 	switch [$taskchild nodeName] {
 	    notes { set description [$taskchild nodeValue]}
 	    depend { 
@@ -786,7 +800,7 @@ ad_proc -public im_gp_save_tasks2 {
 	    customproperty { }
 	    task {
 		# Recursive sub-tasks
-		set task_hash_array [im_gp_save_tasks2 -enable_save_dependencies $enable_save_dependencies $taskchild $gantt_project_id [array get task_hash]]
+		set task_hash_array [im_gp_save_tasks2 -enable_save_dependencies $enable_save_dependencies $taskchild $gantt_project_id [expr 10 * $sort_order] [array get task_hash]]
 		array set task_hash $task_hash_array
 	    }
 	}

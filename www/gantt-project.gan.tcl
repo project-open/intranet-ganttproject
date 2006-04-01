@@ -29,79 +29,37 @@ if {0 == $user_id} {
     set user_id [ad_maybe_redirect_for_registration]
 }
 
-# ---------------------------------------------------------------
-# Write Out Tasks (recursively)
-# ---------------------------------------------------------------
 
 
-ad_proc -public im_ganttproject_write_project_tasks { doc tree_node project_id} {
-    Recursively write out the information about the tasks
-    below a specific project.
+
+# ---------------------------------------------------------------
+# Write Out a Single Task
+# ---------------------------------------------------------------
+
+ad_proc -public im_ganttproject_write_project_task {
+    task_id
+    doc
+    project_node
+    tree_node
+    project_id
 } {
-
+    Create a GanttProject XML structure for a single task
+} {
     if { [security::secure_conn_p] } {
-	set base_url "https://[ad_host][ad_port]"
+        set base_url "https://[ad_host][ad_port]"
     } else {
-	set base_url "http://[ad_host][ad_port]"
+        set base_url "http://[ad_host][ad_port]"
     }
     set task_view_url "$base_url/intranet-timesheet2-tasks/new?task_id="
     set project_view_url "$base_url/intranet/projects/view?project_id="
 
-    # ------------ Create the Project Node -------------
-    if {![db_0or1row project_info "
-        select  p.*,
-                p.start_date::date as project_start_date,
-                p.end_date::date as project_end_date,
-		p.end_date::date - p.start_date::date as duration,
-		1 as priority,
-                c.company_name
-        from    im_projects p,
-                im_companies c
-        where   project_id = :project_id
-                and p.company_id = c.company_id
-    "]} {
-	ad_return_complaint 1 [lang::message::lookup "" intranet-ganttproject.Project_Not_Found "Didn't find project \#%project_id%"]
-	return
-    }
-
-    if {"" == $percent_completed} { set percent_completed "0" }
-
-    set project_node [$doc createElement task]
-    $tree_node appendChild $project_node
-    $project_node setAttribute id $project_id
-    $project_node setAttribute name $project_name
-    $project_node setAttribute meeting "false"
-    $project_node setAttribute start $project_start_date
-    $project_node setAttribute duration $duration
-    $project_node setAttribute complete $percent_completed
-    $project_node setAttribute priority $priority
-    $project_node setAttribute webLink "$project_view_url$project_id"
-    $project_node setAttribute expand "true"
-
-    # Custom Property "task_nr"
-    # <customproperty taskproperty-id="tpc0" value="linux_install" />
-    set task_nr_node [$doc createElement customproperty]
-    $project_node appendChild $task_nr_node
-    $task_nr_node setAttribute taskproperty-id tpc0
-    $task_nr_node setAttribute value $project_nr
-    
-    # Custom Property "task_id"
-    # <customproperty taskproperty-id="tpc1" value="12345" />
-    set task_id_node [$doc createElement customproperty]
-    $project_node appendChild $task_id_node
-    $task_id_node setAttribute taskproperty-id tpc1
-    $task_id_node setAttribute value $project_id
-    
-
-    # ------------ Create the Tasks Below Project -------------
     set project_tasks_sql "
     	select	t.*,
     		t.start_date::date as start_date_date,
     		t.end_date::date as end_date_date,
     		(to_char(t.end_date, 'J')::integer - to_char(t.start_date, 'J')::integer) as duration
     	from 	im_timesheet_tasks t
-    	where	t.project_id = :project_id
-	order by sort_order
+    	where	t.task_id = :task_id
     "
     db_foreach project_tasks $project_tasks_sql {
     
@@ -154,19 +112,136 @@ ad_proc -public im_ganttproject_write_project_tasks { doc tree_node project_id} 
 	    $depend_node setAttribute hardness "Strong"
         }
     }
+}
 
-    # ------------ Recurse into Sub-Projects -------------
-    set subproject_sql "
-	select	project_id
-	from	im_projects
-	where	parent_id = :project_id
-		and project_status_id not in ([im_project_status_deleted], [im_project_status_closed])
-    "
-    db_foreach sub_projects $subproject_sql {
-	# ToDo: Check infinite loop!!!
-	im_ganttproject_write_project_tasks $doc $project_node $project_id
+
+# ---------------------------------------------------------------
+# Write Out Tasks (recursively)
+# ---------------------------------------------------------------
+
+
+ad_proc -public im_ganttproject_write_project { 
+    doc
+    tree_node 
+    project_id
+} {
+    Recursively write out the information about the tasks
+    below a specific project.
+} {
+    if { [security::secure_conn_p] } {
+	set base_url "https://[ad_host][ad_port]"
+    } else {
+	set base_url "http://[ad_host][ad_port]"
+    }
+    set task_view_url "$base_url/intranet-timesheet2-tasks/new?task_id="
+    set project_view_url "$base_url/intranet/projects/view?project_id="
+
+    # ------------ Create the Project Node -------------
+    if {![db_0or1row project_info "
+        select  p.*,
+                p.start_date::date as project_start_date,
+                p.end_date::date as project_end_date,
+		p.end_date::date - p.start_date::date as duration,
+		1 as priority,
+                c.company_name
+        from    im_projects p,
+                im_companies c
+        where   project_id = :project_id
+                and p.company_id = c.company_id
+	order by
+		sort_order
+    "]} {
+	ad_return_complaint 1 [lang::message::lookup "" intranet-ganttproject.Project_Not_Found "Didn't find project \#%project_id%"]
+	return
     }
 
+    if {"" == $percent_completed} { set percent_completed "0" }
+
+    set project_node [$doc createElement task]
+    $tree_node appendChild $project_node
+    $project_node setAttribute id $project_id
+    $project_node setAttribute name $project_name
+    $project_node setAttribute meeting "false"
+    $project_node setAttribute start $project_start_date
+    $project_node setAttribute duration $duration
+    $project_node setAttribute complete $percent_completed
+    $project_node setAttribute priority $priority
+    $project_node setAttribute webLink "$project_view_url$project_id"
+    $project_node setAttribute expand "true"
+
+    # Custom Property "task_nr"
+    # <customproperty taskproperty-id="tpc0" value="linux_install" />
+    set task_nr_node [$doc createElement customproperty]
+    $project_node appendChild $task_nr_node
+    $task_nr_node setAttribute taskproperty-id tpc0
+    $task_nr_node setAttribute value $project_nr
+    
+    # Custom Property "task_id"
+    # <customproperty taskproperty-id="tpc1" value="12345" />
+    set task_id_node [$doc createElement customproperty]
+    $project_node appendChild $task_id_node
+    $task_id_node setAttribute taskproperty-id tpc1
+    $task_id_node setAttribute value $project_id
+    
+    # ------------ Select both Tasks and Sub-Projects -------------
+    # ... in the sort_order
+
+    set object_list_list [db_list_of_lists sorted_query "
+	select *
+	from
+	    (	select	p.project_id as object_id,
+			'im_project' as object_type,
+			sort_order
+		from	im_projects p
+		where	parent_id = :project_id
+	                and project_status_id not in (
+				[im_project_status_deleted], 
+				[im_project_status_closed]
+			)
+	    UNION
+		select	t.task_id as object_id,
+			'im_timesheet_task' as object_type,
+			t.sort_order
+		from	im_timesheet_tasks t
+		where	t.project_id = :project_id
+	   ) ttt
+	order by sort_order
+    "]
+
+    foreach object_record $object_list_list {
+	set object_id [lindex $object_record 0]
+	set object_type [lindex $object_record 1]
+
+	switch $object_type {
+	    "im_timesheet_task" {
+		im_ganttproject_write_project_task \
+			$object_id \
+			$doc \
+			$project_node \
+			$tree_node \
+			$project_id
+	    }
+	    "im_project" {
+		# Recurse into Sub-Projects
+		set subproject_sql "
+			select	project_id
+			from	im_projects
+			where	parent_id = :project_id
+				and project_status_id not in (
+					[im_project_status_deleted], 
+					[im_project_status_closed]
+				)
+                "
+		db_foreach sub_projects $subproject_sql {
+		    # ToDo: Check infinite loop!!!
+		    im_ganttproject_write_project_tasks $doc $project_node $project_id
+		}
+	    }
+	    default {
+		ad_return_complaint 1 "Object type '$object_type' not supported"
+	    }
+	}
+    }
 }
 
 
@@ -239,7 +314,7 @@ $tasks_node appendXML "
 "
 
 # Recursively write out the task hierarchy
-im_ganttproject_write_project_tasks $doc $tasks_node $project_id
+im_ganttproject_write_project $doc $tasks_node $project_id
 
 
 # -------- Resources -------------
