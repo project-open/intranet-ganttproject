@@ -16,7 +16,7 @@ ad_page_contract {
 } {
     { user_id:integer 0 }
     { expiry_date "" }
-    { project_id:integer 9689 }
+    project_id:integer 
     { security_token "" }
     { upload_gan ""}
     { upload_gif ""}
@@ -25,6 +25,11 @@ ad_page_contract {
 # ---------------------------------------------------------------
 # Defaults & Security
 # ---------------------------------------------------------------
+
+if {"" == $upload_gan && "" == $upload_gif} {
+    ad_return_complaint 1 "You need to specify a file to upload"
+}
+
 
 #ToDo: Security
 set today [db_string today "select to_char(now(), 'YYYY-MM-DD')"]
@@ -64,6 +69,32 @@ set root_node [$doc documentElement]
 
 
 # -------------------------------------------------------------------
+# Save the new Tasks from GanttProject
+# -------------------------------------------------------------------
+
+ns_write "<h2>Saving Tasks to the DB</h2><ul>\n"
+
+# Save the tasks.
+# The task_hash contains a mapping table from gantt_project_ids
+# to task_ids.
+set task_hash_array [im_gp_save_tasks \
+	-enable_save_dependencies 0 \
+	-task_hash_array "" \
+	$root_node \
+	$project_id \
+]
+array set task_hash $task_hash_array
+
+
+set task_hash_array [im_gp_save_tasks \
+	-enable_save_dependencies 1 \
+	-task_hash_array "" \
+	$root_node \
+	$project_id \
+]
+
+
+# -------------------------------------------------------------------
 # Process Allocations
 # <allocation task-id="12391" resource-id="7" function="Default:0" responsible="true" load="100.0"/>
 # -------------------------------------------------------------------
@@ -74,11 +105,17 @@ foreach child [$allocations_node childNodes] {
     switch [$child nodeName] {
 	"allocation" {
 	    set task_id [$child getAttribute task-id ""]
+	    if {[info exists task_hash($task_id)]} { set task_id $task_hash($task_id) }
 	    set resource_id [$child getAttribute resource-id ""]
 	    set function [$child getAttribute function ""]
 	    set responsible [$child getAttribute responsible ""]
 	    set percentage [$child getAttribute load "0"]
-	    set allocation_exists_p [db_0or1row allocation_info "select * from im_timesheet_task_allocations where task_id = :task_id and user_id = :resource_id"]
+	    set allocation_exists_p [db_0or1row allocation_info "
+		select * 
+		from im_timesheet_task_allocations 
+		where	task_id = :task_id 
+			and user_id = :resource_id
+	    "]
 
 	    set role_id [im_biz_object_role_full_member]
 	    if {[string equal "Default:1" $function]} { 
@@ -105,15 +142,6 @@ foreach child [$allocations_node childNodes] {
     }
 }
 ns_write "</ul>\n"
-
-
-
-# -------------------------------------------------------------------
-# Save the new Tasks from GanttProject
-# -------------------------------------------------------------------
-
-# Save the tasks to the DB
-im_gp_save_tasks $root_node $project_id
 
 
 
@@ -155,7 +183,7 @@ set del_projects_sql "
 "
 db_foreach del_projects $del_projects_sql {
     ns_write "<li>Nuking project '$project_id'\n"
-    im_project_nuke $project_id
+#    im_project_nuke $project_id
 }
 
 
@@ -166,7 +194,7 @@ set del_tasks_sql "
 "
 db_foreach del_tasks $del_tasks_sql {
     ns_write "<li>Nuking task '$task_id'\n"
-    im_task_nuke $task_id
+#    im_task_nuke $task_id
 }
 
 
