@@ -18,7 +18,8 @@ ad_page_contract {
     { expiry_date "" }
     { project_id:integer 9689 }
     { security_token "" }
-    upload_file
+    { upload_gan ""}
+    { upload_gif ""}
 }
 
 # ---------------------------------------------------------------
@@ -37,7 +38,7 @@ ad_return_top_of_page "[im_header]\n[im_navbar]"
 # Get the file from the user.
 # number_of_bytes is the upper-limit
 set max_n_bytes [ad_parameter -package_id [im_package_filestorage_id] MaxNumberOfBytes "" 0]
-set tmp_filename [ns_queryget upload_file.tmpfile]
+set tmp_filename [ns_queryget upload_gan.tmpfile]
 ns_log Notice "upload-2: tmp_filename=$tmp_filename"
 set file_size [file size $tmp_filename]
 
