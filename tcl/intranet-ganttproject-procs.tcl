@@ -234,13 +234,16 @@ ad_proc -public im_gp_extract_db_tree { project_id} {
 # Map the XML tasks (GanttProject) to the DB tasks (]project-open[)
 # -------------------------------------------------------------------
 
-ad_proc -public im_gp_extract_xml_tree { root_node } {
+ad_proc -public im_gp_extract_xml_tree { 
+    root_node 
+    task_hash_array
+} {
     Solving the mapping issue upfront is going to save us a lot of 
     hassle when it comes to saving the changes to the database.
     And we can - somehow - separate synchronization logic from
     the database commands.
 } {
-    ns_write "<h2>Extract XML Tree</h2><ul>\n"
+    ns_log Notice "im_gp_extract_xml_tree: Extract XML Tree"
     set xml_tree [list]
     set tasks_node [$root_node selectNodes /project/tasks]
     set super_task_node ""
@@ -248,6 +251,8 @@ ad_proc -public im_gp_extract_xml_tree { root_node } {
 	switch [$child nodeName] {
 	    "task" {
 		set task_id [$child getAttribute id ""]
+		if {[info exists task_hash($task_id)]} { set task_id $task_hash($task_id) }
+
 		set object_type [db_string obj_type "
 		select object_type from acs_objects 
 		where object_id = :task_id" -default "none"]
@@ -260,29 +265,31 @@ ad_proc -public im_gp_extract_xml_tree { root_node } {
 		}
 		
 		# Go through sub-tasks
-		ns_write "<ul>\n"
 		foreach task_child [$child childNodes] {
 		    if {"task" == [$task_child nodeName]} {
-			ns_write "<li>im_ganttproject_xml_task_tree [$task_child nodeName]\n"
-			lappend xml_tree [im_gp_extract_xml_tree2 $task_child]
+			ns_log Notice "im_gp_extract_xml_tree: [$task_child nodeName]"
+			lappend xml_tree [im_gp_extract_xml_tree2 $task_child $task_hash_array]
 		    }
 		}
-		ns_write "</ul>\n"
 	    }
 	    default {}
 	}
     }
-    ns_write "</ul>\n"
     return $xml_tree
 }
 
 
-ad_proc -public im_gp_extract_xml_tree2 { task_node } {
+ad_proc -public im_gp_extract_xml_tree2 { 
+    task_node 
+    task_hash_array
+} {
     Creates a recursive tree from the information in the XML file
     Return the "tasks" node of the XML data structure as a tree.
      The tree consists of nodes like:
     {gantt_id task_id task_nr children}
 } {
+    array set task_hash $task_hash_array
+
     set gantt_id [$task_node getAttribute id ""]
     set task_nr ""
     set task_id "0"
@@ -298,12 +305,15 @@ ad_proc -public im_gp_extract_xml_tree2 { task_node } {
 		set cust_value [$taskchild getAttribute value ""]
 		switch $cust_key {
 		    tpc0 { set task_nr $cust_value}
-		    tpc1 { set task_id $cust_value}
+		    tpc1 { 
+			set task_id $cust_value
+			if {[info exists task_hash($task_id)]} { set task_id $task_hash($task_id) }
+		    }
 		}
 	    }
 	    task {
 		# Recursive sub-tasks
-		lappend task_children [im_gp_extract_xml_tree2 $taskchild]
+		lappend task_children [im_gp_extract_xml_tree2 $taskchild $task_hash_array]
 	    }
 	}
     }
@@ -340,12 +350,13 @@ ad_proc -public im_ganttproject_create_dependency { depend_node task_node task_h
     set difference [$depend_node getAttribute difference]
     set hardness [$depend_node getAttribute hardness]
 
-    ns_write "<li>im_ganttproject_create_dependency($task_id_one, $task_id_two, $depend_type, $hardness)\n"
+    set org_task_id_one task_id_one
+    set org_task_id_two task_id_two
 
     if {[info exists task_hash($task_id_one)]} { set task_id_one $task_hash($task_id_one) }
     if {[info exists task_hash($task_id_two)]} { set task_id_two $task_hash($task_id_two) }
 
-    ns_write "<li>im_ganttproject_create_dependency($task_id_one, $task_id_two, $depend_type, $hardness)\n"
+    ns_write "<li>im_ganttproject_create_dependency($org_task_id_one =&gt; $task_id_one, $org_task_id_two =&gt; $task_id_two, $depend_type, $hardness)\n"
 
     # ----------------------------------------------------------
     # Check if the two task_ids exist
@@ -478,6 +489,7 @@ ad_proc -public im_gp_save_tasks2 {
 #    ns_write "<li>im_gp_save_tasks2($task_node, $super_project_id): '[array get task_hash]'\n"
     set task_url "/intranet-timesheet2-tasks/new?task_id="
 
+    set org_super_project_id $super_project_id
     if {[info exists task_hash($super_project_id)]} {
         set super_project_id $task_hash($super_project_id)
     }
@@ -527,8 +539,6 @@ ad_proc -public im_gp_save_tasks2 {
 	set task_nr "task_$gantt_project_id"
     }
 
-    ns_write "<li>im_gp_save_tasks2: gantt_project_id='$gantt_project_id', task_id='$task_id', task_nr='$task_nr', super_project_id='$super_project_id': '[array get task_hash]'"
-
 
     # -----------------------------------------------------
     # Set some default variables for new tasks
@@ -538,11 +548,7 @@ ad_proc -public im_gp_save_tasks2 {
     set cost_center_id ""
     set material_id [im_material_default_material_id]
 
-    # Check if the "super_project_id" has been mapped to a new object:
-    if {[info exists task_hash($super_project_id)]} {
-	ns_write "<li>im_gp_save_tasks2: mapping super_project_id $super_project_id => $task_hash($super_project_id)"
-	set super_project_id $task_hash($super_project_id)
-    }
+    ns_write "<li>im_gp_save_tasks2: gp_id='$gantt_project_id', task_id='$task_id', task_nr='$task_nr', super_project_id: $org_super_project_id =&gt; $super_project_id"
 
 
     # Set some default variables for new project
@@ -587,7 +593,6 @@ ad_proc -public im_gp_save_tasks2 {
     " -default 0]
 
     if {0 != $existing_task_id} {
-	ns_write "<li>im_gp_save_tasks2: found task_id=$existing_task_id for task with task_nr=$task_nr"
 	set task_hash($gantt_project_id) $existing_task_id
 	set task_id $existing_task_id
 	set task_exists_p 1
@@ -616,8 +621,6 @@ ad_proc -public im_gp_save_tasks2 {
         set task_id $existing_project_id
         set project_exists_p 1
     }
-
-    ns_write "<li>im_gp_save_tasks2: gantt_project_id='$gantt_project_id', task_id='$task_id', task_nr='$task_nr', super_project_id='$super_project_id', task_exist_p=$task_exists_p, task_otype=$task_otype"
 
 
     # -----------------------------------------------------
@@ -786,7 +789,6 @@ ad_proc -public im_gp_save_tasks2 {
 
     # ---------------------------------------------------------------
     # Process task sub-nodes
-    ns_write "<li>im_gp_save_tasks2 task=$task_name id=$gantt_project_id"
     ns_write "<ul>\n"
     foreach taskchild [$task_node childNodes] {
 	incr sort_order
@@ -811,11 +813,56 @@ ad_proc -public im_gp_save_tasks2 {
 }
 
 
-
-
 # ----------------------------------------------------------------------
-# 
+# Allocations
 # ----------------------------------------------------------------------
 
+ad_proc -public im_gp_save_allocations { 
+    childNodes
+    task_hash_array
+} {
+    Saves allocation information from GanttProject
+} {
+    array set task_hash $task_hash_array
+
+    foreach child [$allocations_node childNodes] {
+	switch [$child nodeName] {
+	    "allocation" {
+		set task_id [$child getAttribute task-id ""]
+		if {[info exists task_hash($task_id)]} { set task_id $task_hash($task_id) }
+		set resource_id [$child getAttribute resource-id ""]
+		set function [$child getAttribute function ""]
+		set responsible [$child getAttribute responsible ""]
+		set percentage [$child getAttribute load "0"]
+		
+		set allocation_exists_p [db_0or1row allocation_info "
+			select	* 
+			from	im_timesheet_task_allocations 
+			where	task_id = :task_id 
+				and user_id = :resource_id
+	        "]
+
+		set role_id [im_biz_object_role_full_member]
+		if {[string equal "Default:1" $function]} { 
+		    set role_id [im_biz_object_role_project_manager]
+		}
+		if {!$allocation_exists_p} { 
+		    db_dml insert_allocation "
+			insert into im_timesheet_task_allocations 
+			(task_id, user_id) values (:task_id, :resource_id)"
+		}
+		db_dml update_allocation "
+			update im_timesheet_task_allocations set
+				role_id	= [im_biz_object_role_full_member],
+				percentage = :percentage
+			where	task_id = :task_id
+				and user_id = :resource_id
+	        "
+		ns_write "<li>[ns_quotehtml [$child asXML]]"
+	    }
+	    default { }
+	}
+    }
+}
 
 

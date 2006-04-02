@@ -72,7 +72,8 @@ set root_node [$doc documentElement]
 # Save the new Tasks from GanttProject
 # -------------------------------------------------------------------
 
-ns_write "<h2>Saving Tasks to the DB</h2><ul>\n"
+ns_write "<h2>Saving Tasks to the DB</h2>\n"
+ns_write "<ul>\n"
 
 # Save the tasks.
 # The task_hash contains a mapping table from gantt_project_ids
@@ -88,10 +89,11 @@ array set task_hash $task_hash_array
 
 set task_hash_array [im_gp_save_tasks \
 	-enable_save_dependencies 1 \
-	-task_hash_array "" \
+	-task_hash_array $task_hash_array \
 	$root_node \
 	$project_id \
 ]
+ns_write "</ul>\n"
 
 
 # -------------------------------------------------------------------
@@ -100,47 +102,13 @@ set task_hash_array [im_gp_save_tasks \
 # -------------------------------------------------------------------
 
 set allocations_node [$root_node selectNodes /project/allocations]
-ns_write "<h2>Saving Allocations</h2><ul>\n"
-foreach child [$allocations_node childNodes] {
-    switch [$child nodeName] {
-	"allocation" {
-	    set task_id [$child getAttribute task-id ""]
-	    if {[info exists task_hash($task_id)]} { set task_id $task_hash($task_id) }
-	    set resource_id [$child getAttribute resource-id ""]
-	    set function [$child getAttribute function ""]
-	    set responsible [$child getAttribute responsible ""]
-	    set percentage [$child getAttribute load "0"]
-	    set allocation_exists_p [db_0or1row allocation_info "
-		select * 
-		from im_timesheet_task_allocations 
-		where	task_id = :task_id 
-			and user_id = :resource_id
-	    "]
+ns_write "<h2>Saving Allocations</h2>\n"
+ns_write "<ul>\n"
 
-	    set role_id [im_biz_object_role_full_member]
-	    if {[string equal "Default:1" $function]} { 
-		set role_id [im_biz_object_role_project_manager]
-	    }
-	    if {!$allocation_exists_p} { 
-		db_dml insert_allocation "
-		insert into im_timesheet_task_allocations (
-			task_id, user_id
-		) values (
-			:task_id, :resource_id
-		)"
-	    }
-	    db_dml update_allocation "
-		update im_timesheet_task_allocations set
-			role_id	= [im_biz_object_role_full_member],
-			percentage = :percentage
-		where	task_id = :task_id
-			and user_id = :resource_id
-	    "
-	    ns_write "<li>[ns_quotehtml [$child asXML]]"
-	}
-	default { }
-    }
-}
+im_gp_save_allocations \
+	$childNodes \
+	-task_hash_array $task_hash_array
+
 ns_write "</ul>\n"
 
 
@@ -150,7 +118,7 @@ ns_write "</ul>\n"
 # -------------------------------------------------------------------
 
 # Extract a tree of tasks from the Database
-set xml_tree [im_gp_extract_xml_tree $root_node]
+set xml_tree [im_gp_extract_xml_tree $root_node $task_hash_array]
 set db_tree [im_gp_extract_db_tree $project_id]
 set db_list [lsort -integer -unique [im_gp_flatten $db_tree]]
 set xml_list [lsort -integer -unique [im_gp_flatten $xml_tree]]
@@ -194,7 +162,7 @@ set del_tasks_sql "
 "
 db_foreach del_tasks $del_tasks_sql {
     ns_write "<li>Nuking task '$task_id'\n"
-#    im_task_nuke $task_id
+    im_timesheet_task_nuke $task_id
 }
 
 
