@@ -72,50 +72,66 @@ set root_node [$doc documentElement]
 # Save the new Tasks from GanttProject
 # -------------------------------------------------------------------
 
-ns_write "<h2>Saving Tasks to the DB</h2>\n"
-ns_write "<ul>\n"
-
 # Save the tasks.
 # The task_hash contains a mapping table from gantt_project_ids
 # to task_ids.
+
+ns_write "<h2>Pass 1: Saving Tasks</h2><ul>\n"
+set task_hash_array [list]
+
 set task_hash_array [im_gp_save_tasks \
 	-enable_save_dependencies 0 \
-	-task_hash_array "" \
+	 -task_hash_array $task_hash_array \
 	$root_node \
 	$project_id \
 ]
 array set task_hash $task_hash_array
 
 
-set task_hash_array [im_gp_save_tasks \
-	-enable_save_dependencies 1 \
-	-task_hash_array $task_hash_array \
-	$root_node \
-	$project_id \
-]
-ns_write "</ul>\n"
+#ns_write "<h2>Pass 2: Saving Dependencies</h2><ul>\n"
+#set task_hash_array [im_gp_save_tasks \
+#	-enable_save_dependencies 1 \
+#	-task_hash_array $task_hash_array \
+#	$root_node \
+#	$project_id \
+#]
 
+# -------------------------------------------------------------------
+# Process Resources
+# <allocation task-id="12391" resource-id="7" function="Default:0" responsible="true" load="100.0"/>
+# -------------------------------------------------------------------
+
+ns_write "<h2>Saving Resources</h2>\n"
+ns_write "<ul>\n"
+
+set resource_node [$root_node selectNodes /project/resources]
+set resource_hash_array [im_gp_save_resources $resource_node]
+
+ns_write "</ul>\n"
 
 # -------------------------------------------------------------------
 # Process Allocations
 # <allocation task-id="12391" resource-id="7" function="Default:0" responsible="true" load="100.0"/>
 # -------------------------------------------------------------------
 
-set allocations_node [$root_node selectNodes /project/allocations]
 ns_write "<h2>Saving Allocations</h2>\n"
 ns_write "<ul>\n"
 
+set allocations_node [$root_node selectNodes /project/allocations]
 im_gp_save_allocations \
-	$childNodes \
-	-task_hash_array $task_hash_array
+	$allocations_node \
+	$task_hash_array \
+        $resource_hash_array
+
 
 ns_write "</ul>\n"
-
 
 
 # -------------------------------------------------------------------
 # Delete the tasks that have been deleted in GanttProject
 # -------------------------------------------------------------------
+
+ns_write "<h2>Deleting Deleted Tasks</h2>\n"
 
 # Extract a tree of tasks from the Database
 set xml_tree [im_gp_extract_xml_tree $root_node $task_hash_array]
@@ -123,13 +139,11 @@ set db_tree [im_gp_extract_db_tree $project_id]
 set db_list [lsort -integer -unique [im_gp_flatten $db_tree]]
 set xml_list [lsort -integer -unique [im_gp_flatten $xml_tree]]
 
-ns_write "<h2>Extract DB Tree</h2>\n"
-ns_write "<ul>\n"
-ns_write "<li>DB Tree: $db_tree\n"
-ns_write "<li>XML Tree: $xml_tree\n"
-ns_write "<li>DB List: $db_list\n"
-ns_write "<li>XML List: $xml_list\n"
-ns_write "</ul>\n"
+ns_log Notice "task_hash_array: $task_hash_array"
+ns_log Notice "gantt-upload-2: DB Tree: $db_tree\n"
+ns_log Notice "gantt-upload-2: XML Tree: $xml_tree\n"
+ns_log Notice "gantt-upload-2: DB List: $db_list\n"
+ns_log Notice "gantt-upload-2: XML List: $xml_list\n"
 
 
 # Now calculate the difference between the two lists
@@ -139,10 +153,7 @@ set diff_list [im_gp_difference $db_list [lappend xml_list $project_id]]
 # Deal with the case of an empty diff_list
 lappend diff_list 0
 
-ns_write "<h2>Difference List</h2>\n"
-ns_write "<ul>\n"
-ns_write "<li>Diff List: $diff_list\n"
-ns_write "</ul>\n"
+ns_log Notice "gantt-upload-2: Diff List: $diff_list\n"
 
 set del_projects_sql "
 	select	p.project_id
@@ -150,8 +161,8 @@ set del_projects_sql "
 	where	p.project_id in ([join $diff_list ","])
 "
 db_foreach del_projects $del_projects_sql {
-    ns_write "<li>Nuking project '$project_id'\n"
-#    im_project_nuke $project_id
+    ns_write "<li>Nuking project# $project_id\n"
+    im_project_nuke $project_id
 }
 
 
@@ -161,7 +172,7 @@ set del_tasks_sql "
 	where	p.task_id in ([join $diff_list ","])
 "
 db_foreach del_tasks $del_tasks_sql {
-    ns_write "<li>Nuking task '$task_id'\n"
+    ns_write "<li>Nuking task# $task_id\n"
     im_timesheet_task_nuke $task_id
 }
 

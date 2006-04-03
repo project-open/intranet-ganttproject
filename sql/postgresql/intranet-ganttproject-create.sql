@@ -35,6 +35,6 @@ SELECT im_component_plugin__new (
         '/intranet/projects/view',      -- page_url
         null,                           -- view_name
         -10,                            -- sort_order
-	'im_table_with_title [lang::message::lookup "" intranet-ganttproject.Scheduling "Scheduling (Experimental)"] [im_ganttproject_component -project_id $project_id -current_page_url $current_url -return_url $return_url -export_var_list [list project_id]]'
+	'im_table_with_title [lang::message::lookup "" intranet-ganttproject.Scheduling "Scheduling <font color=red>(Beta Code. Please use with care)</font>"] [im_ganttproject_component -project_id $project_id -current_page_url $current_url -return_url $return_url -export_var_list [list project_id]]'
 );
 
