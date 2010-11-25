@@ -40,7 +40,6 @@ if {"" == $upload_gan && "" == $upload_gif} {
 
 set today [db_string today "select to_char(now(), 'YYYY-MM-DD')"]
 set page_title [lang::message::lookup "" intranet-ganttproject.Import_Gantt_Tasks "Import Gantt Tasks"]
-set context_bar [im_context_bar $page_title]
 set reassign_title [lang::message::lookup "" intranet-ganttproject.Delete_Gantt_Tasks "Reassign Resources of Removed Tasks"]
 set resource_title [lang::message::lookup "" intranet-ganttproject.Resource_Title "Resources not Found"]
 
@@ -79,31 +78,6 @@ if { $max_n_bytes && ($file_size > $max_n_bytes) } {
     return 0
 }
 
-
-# -------------------------------------------------------------------
-# Determine the type of the file
-# -------------------------------------------------------------------
-
-set file_type [fileutil::fileType $tmp_filename]
-if {[lsearch $file_type "ms-office"] >= 0} {
-    # We've found a binary MS-Office file, probably MPP
-
-    ad_return_complaint 1 "
-	<b>[lang::message::lookup "" intranet-ganttproject.Invalid_XML "Invalid XML Format"]</b>:<br>&nbsp;<br>
-	[lang::message::lookup "" intranet-ganttproject.Invalid_MS_Office_Document "
-		You have uploaded a Microsoft Office document. This is not supported.<br>
-		In MS-Project please choose:<br>
-		<b>File -&gt; Save As -&gt; Save as type -&gt; XML Format (*.xml)</b><br>
-		in order to save your file in XML format.
-	"]
-    "
-    ad_script_abort
-
-}
-
-# -------------------------------------------------------------------
-# Read the file from the HTTP session's TMP file
-# -------------------------------------------------------------------
 
 if {[catch {
     set fl [open $tmp_filename]
@@ -152,84 +126,28 @@ ns_log Notice "gantt-upload-2: format=$format"
 #ns_write "<h2>Pass 1: Saving Tasks</h2>\n"
 set task_hash_array [list]
 
+set task_hash_array [im_gp_save_tasks \
+	-format $format \
+	-create_tasks 1 \
+	-save_dependencies 0 \
+	-task_hash_array $task_hash_array \
+	-debug $debug_p \
+	$root_node \
+	$project_id \
+]
+array set task_hash $task_hash_array
 
-if {[catch {
+#ns_write "<h2>Pass 2: Saving Dependencies</h2>\n"
+set task_hash_array [im_gp_save_tasks \
+	-format $format \
+	-create_tasks 0 \
+	-save_dependencies 1 \
+	-task_hash_array $task_hash_array \
+	-debug $debug_p \
+	$root_node \
+	$project_id \
+]
 
-    set task_hash_array [im_gp_save_tasks \
-			     -format $format \
-			     -create_tasks 1 \
-			     -save_dependencies 0 \
-			     -task_hash_array $task_hash_array \
-			     -debug_p $debug_p \
-			     $root_node \
-			     $project_id \
-			    ]
-    array set task_hash $task_hash_array
-    
-    #ns_write "<h2>Pass 2: Saving Dependencies</h2>\n"
-    set task_hash_array [im_gp_save_tasks \
-			     -format $format \
-			     -create_tasks 0 \
-			     -save_dependencies 1 \
-			     -task_hash_array $task_hash_array \
-			     -debug_p $debug_p \
-			     $root_node \
-			     $project_id \
-			    ]
-} err_msg]} {
-    
-    global errorInfo
-    set stack_trace $errorInfo
-    set latest_version_url "http://www.project-open.org/documentation/developers_cvs_checkout"
-    set params [list]
-    lappend params [list stacktrace $stack_trace]
-    lappend params [list error_type gantt_import]
-    lappend params [list error_content $binary_content]
-    lappend params [list error_content_filename $upload_gan]
-    lappend params [list top_message "
-	<h1>Error Parsing Project XML</h1>
-	<p>We have found an error parsing your project file.	<br>&nbsp;<br>
-	<ol>
-	<li>Please make sure you are running the <a href='$latest_version_url'>latest version</a> of &#93;project-open&#91;.<br>
-	    There is a good chance that your issue has already been fixed.
-	    <br>&nbsp;<br>
-	</li>
-	<li>Please help us to identify and fix the issue by clicking on the 'Report this Error' button.<br>
-	    Please note that this function will transmit your XML file.<br>
-	    This is necessary in order to allow the &#93;po&#91; team to reproduce the error.
-	    <br>&nbsp;<br>
-	</li>
-	</ol>
-	<br>
-    "]
-    lappend params [list bottom_message "
-	<br>&nbsp;<br>
-    "]
-    
-    set error_html [ad_parse_template -params $params "/packages/acs-tcl/lib/page-error"]
-
-            db_release_unused_handles
-            ns_return 200 text/html $error_html
-            ad_script_abort
-
-    ad_return_complaint 1 "
-	<b>[lang::message::lookup "" intranet-ganttproject.Error_Parsing_XML_Title "Error parsing XML file"]</b>:<br>
-	[lang::message::lookup "" intranet-ganttproject.Error_Parsing_XML_Message "
-		We have found an error parsing your XML file.
-		Here is the original error message:
-	"]
-	<br>&nbsp;<br>
-	<pre>$stack_trace</pre>
-	<form
-	<input type=submit name='A' value='$report_this_error_l10n'>
-	<input type=hidden name=stack_trace value='[ns_quotehtml $stack_trace]'>
-	<input type=hidden name=binary_content value='[ns_quotehtml $binary_content]'>
-	</form>
-
-    "
-    ad_script_abort
-
-}
 
 # -------------------------------------------------------------------
 # Description
@@ -259,7 +177,7 @@ if {$resource_node != ""} {
     if {$debug_p} { ns_write "<h2>Saving Resources</h2>\n" }
     if {$debug_p} { ns_write "<ul>\n" }
 
-    set resource_hash_array [im_gp_save_resources -debug_p $debug_p $resource_node]
+    set resource_hash_array [im_gp_save_resources -debug $debug_p $resource_node]
     array set resource_hash $resource_hash_array
     if {$debug_p} { ns_write "<li>\n<pre>resource_hash_array=$resource_hash_array</pre>" }
     if {$debug_p} { ns_write "</ul>\n" }
@@ -291,7 +209,7 @@ if {$allocations_node != ""} {
     #ns_write "<ul>\n"
 
     im_gp_save_allocations \
-	-debug_p $debug_p \
+	-debug $debug_p \
 	$allocations_node \
 	$task_hash_array \
         $resource_hash_array
@@ -401,26 +319,4 @@ template::list::create \
 
 # Write audit trail
 im_project_audit -project_id $project_id
-
-
-
-
-# ---------------------------------------------------------------------
-# Projects Submenu
-# ---------------------------------------------------------------------
-
-set bind_vars [ns_set create]
-ns_set put $bind_vars project_id $project_id
-set parent_menu_id [util_memoize [list db_string parent_menu "select menu_id from im_menus where label='project'" -default 0]]
-set menu_label ""
-
-set sub_navbar [im_sub_navbar \
-		    -components \
-		    -base_url [export_vars -base "/intranet/projects/view" {project_id}] \
-		    $parent_menu_id \
-		    $bind_vars \
-		    "" \
-		    "pagedesriptionbar" \
-		    $menu_label \
-		   ]
 

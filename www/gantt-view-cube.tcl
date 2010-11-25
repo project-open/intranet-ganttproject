@@ -30,27 +30,13 @@ ad_page_contract {
 
 
 # ---------------------------------------------------------------
-# Default & Security
-# ---------------------------------------------------------------
-
-set user_id [ad_maybe_redirect_for_registration]
-
-foreach pid $project_id {
-    im_project_permissions $user_id $pid view read write admin
-    if {!$read} {
-	ad_return_complaint 1 "<li>[_ intranet-core.lt_You_have_insufficient_6]"
-	return
-    }
-}
-
-set show_context_help_p 0
-set main_navbar_label "reporting"
-
-# ---------------------------------------------------------------
 # Project Menu
 # ---------------------------------------------------------------
 
-set sub_navbar ""
+set show_context_help_p 0
+
+set main_navbar_label "reporting"
+
 if {[llength $project_id] == 1} {
     # Exactly one project - quite a frequent case.
     # Show a ProjectMenu so that it looks like we've gone to a different tab.

@@ -409,7 +409,7 @@ ad_proc -public im_gp_save_tasks {
     {-create_tasks 1}
     {-save_dependencies 1}
     {-task_hash_array ""}
-    {-debug_p 0}
+    {-debug 0}
     root_node 
     super_project_id 
 } {
@@ -420,28 +420,17 @@ ad_proc -public im_gp_save_tasks {
 
     set tasks_node [$root_node selectNodes /project/tasks]
 
-    if {$tasks_node == ""} {
-	# Probably ms project format
+    if {$tasks_node==""} {
+	# probably ms project format
 
-	# Check that we've got the newer version of tDom...
-	if {[ns_info version] < 4} {
-	    ad_return_complaint 1 "<b>Invalid AOLserver Version</b>:<br>
-		Your server is still running on AOLserver version '[ns_info version]'.<br>
-		However, you need at least AOLserver version '4.0' to use this functionalitly.
-	    "
-	    ad_script_abort
-	}
-
-	# Make sure there is an im_gantt_projects entry for the super_project
 	if {[db_string check_gantt_project_entry "
-		select	count(*)=0 
-		from	im_gantt_projects 
-		where	project_id = :super_project_id
+           select count(*)=0 
+           from im_gantt_projects 
+           where project_id=:super_project_id
         "]} {
-	    db_dml add_gantt_project_entry "insert into im_gantt_projects (project_id,xml_elements) values (:super_project_id, '')"
+	    db_dml add_gantt_project_entry "insert into im_gantt_projects (project_id,xml_elements) values (:super_project_id,'')"
 	}
 
-	# Store the information of the main project in the super_project's im_gantt_project entry.
 	set xml_elements {}
 	foreach child [$root_node childNodes] {
 	    set nodeName [$child nodeName]
@@ -450,44 +439,46 @@ ad_proc -public im_gp_save_tasks {
 
 	    lappend xml_elements $nodeName
 
-	    switch [string tolower $nodeName] {
-		"name" - "title" - "manager" - "calendaruid" - "calendars" - 
-		"tasks" - "resources" - "assignments" - "schedulefromstart" {
-		    ns_log Notice "im_gp_save_tasks: Ignore project information"
+	    switch $nodeName {
+		"Name" - "Title" - "Manager" - "CalendarUID" - "Calendars" - 
+		"Tasks" - "Resources" - "Assignments" - "ScheduleFromStart" {
+		    ns_log Notice "im_gp_save_tasks: Ignore"
 		    # ignore these
 		}
-		"startdate" {
+		"StartDate" {
 		    ns_log Notice "im_gp_save_tasks: StartDate: Update im_projects.start_date"
 		    db_dml project_start_date "
-			UPDATE im_projects SET start_date = :nodeText WHERE project_id = :super_project_id"
+                       UPDATE im_projects SET start_date=:nodeText WHERE project_id=:super_project_id"
 		}
-		"finishdate" {		    
+		"FinishDate" {		    
 		    ns_log Notice "im_gp_save_tasks: StartDate: Update im_projects.end_date"
 		    db_dml project_end_date "
-			UPDATE im_projects SET end_date = :nodeText WHERE project_id = :super_project_id"
+                       UPDATE im_projects SET end_date=:nodeText WHERE project_id=:super_project_id"
 		}
 		default {
 		    im_ganttproject_add_import "im_gantt_project" $nodeName
 		    set column_name "xml_$nodeName"
 		    db_dml update_import_field "
-			UPDATE	im_gantt_projects 
-			SET	[plsql_utility::generate_oracle_name $column_name] = :nodeText
-			WHERE	project_id = :super_project_id
+                       UPDATE im_gantt_projects 
+                       SET [plsql_utility::generate_oracle_name $column_name]=:nodeText
+                       WHERE project_id=:super_project_id
                     "
 		}
-	    }	    
-	}
+	    }
 
-	db_dml update_import_field "
-		UPDATE	im_gantt_projects 
-		SET	xml_elements = :xml_elements
-		WHERE	project_id = :super_project_id
-        "
+	    db_dml update_import_field "
+               UPDATE im_gantt_projects 
+               SET xml_elements=:xml_elements
+               WHERE project_id=:super_project_id
+            "
+	    
+	}
 
 	set tasks_node [$root_node selectNodes -namespace { "project" "http://schemas.microsoft.com/project" } "project:Tasks"]
     }
     
     set super_task_node ""
+
     set sort_order 0
 
     # Tricky: The task_hash contains the mapping from gantt_task_id => task_id
@@ -495,16 +486,15 @@ ad_proc -public im_gp_save_tasks {
     # recursive calls because TCL doesnt have by-value variables
     array set task_hash $task_hash_array
 
-    ns_log Notice "im_gp_save_tasks: Starting to iterate through task nodes"
     foreach child [$tasks_node childNodes] {
-	if {$debug_p} { ns_write "<li>Child: [$child nodeName]\n<ul>\n" }
+	if {$debug} { ns_write "<li>Child: [$child nodeName]\n<ul>\n" }
 
-	switch [string tolower [$child nodeName]] {
-	    "task" {
+	switch [$child nodeName] {
+	    "task" - "Task" {
 		set task_hash_array [im_gp_save_tasks2 \
 			-create_tasks $create_tasks \
 			-save_dependencies $save_dependencies \
-			-debug_p $debug_p \
+			-debug $debug \
 			$child \
 			$super_project_id \
 			sort_order \
@@ -515,7 +505,7 @@ ad_proc -public im_gp_save_tasks {
 	    default {}
 	}
 
-	if {$debug_p} { ns_write "</ul>\n" }
+	if {$debug} { ns_write "</ul>\n" }
     }
     # Return the mapping hash
     return [array get task_hash]
@@ -523,7 +513,7 @@ ad_proc -public im_gp_save_tasks {
 
 
 ad_proc -public im_gp_save_tasks2 {
-    {-debug_p 0}
+    {-debug 0}
     -create_tasks
     -save_dependencies
     task_node 
@@ -538,14 +528,14 @@ ad_proc -public im_gp_save_tasks2 {
     set my_sort_order $sort_order 
 
     array set task_hash $task_hash_array
-    if {$debug_p} { ns_write "<li>GanttProject($task_node, $super_project_id): '[array get task_hash]'\n" }
+    if {$debug} { ns_write "<li>GanttProject($task_node, $super_project_id): '[array get task_hash]'\n" }
     set task_url "/intranet-timesheet2-tasks/new?task_id="
 
-    # Check if the super_project_id was stored in the task_hash
-    # This doesn't make sense if this procedure is used recursively...
-    #    if {[info exists task_hash(super_project_id)]} {
-    #        set super_project_id $task_hash($super_project_id)
-    #    }
+    # What does this mean???
+    set org_super_project_id $super_project_id
+    if {[info exists task_hash($super_project_id)]} {
+        set super_project_id $task_hash($super_project_id)
+    }
 
     # The gantt_project_id as returned from the XML file.
     # This ID does not correspond to a OpenACS object,
@@ -553,46 +543,47 @@ ad_proc -public im_gp_save_tasks2 {
     # IDs for new objects.
     set gantt_project_id [$task_node getAttribute id ""]
 
-    set task_name		[$task_node getAttribute name ""]
-    set start_date		[$task_node getAttribute start ""]
-    set duration		[$task_node getAttribute duration ""]
-    set percent_completed	[$task_node getAttribute complete "0"]
-    set priority		[$task_node getAttribute priority ""]
-    set expand_p		[$task_node getAttribute expand ""]
-    set end_date		[db_string end_date "select :start_date::date + :duration::integer"]
+    set task_name [$task_node getAttribute name ""]
+    set start_date [$task_node getAttribute start ""]
+    set duration [$task_node getAttribute duration ""]
+    set percent_completed [$task_node getAttribute complete "0"]
+    set priority [$task_node getAttribute priority ""]
+    set expand_p [$task_node getAttribute expand ""]
+    set end_date [db_string end_date "select :start_date::date + :duration::integer"]
     set is_null 0
     set note ""
     set task_nr ""
     set task_id 0
     set has_subobjects_p 0
 
-    set outline_number ""
+    set duration ""
     set remaining_duration ""
+    set outline-number ""
 
     set gantt_field_update {}
+
     set xml_elements {}
 
-    # Microsoft Project uses tags instead of attributes
+    # ms format uses tags instead of attributes
     foreach taskchild [$task_node childNodes] {
 	set nodeName [$taskchild nodeName]
 	set nodeText [$taskchild text]
-	ns_log Notice "im_gp_save_tasks2: $task_name: nodeName=$nodeName, nodeText=$nodeText"
+	ns_log Notice "im_gp_save_tasks2: nodeName=$nodeName, nodeText=$nodeText"
 
-        switch [string tolower $nodeName] {
-            "name"              { set task_name [$taskchild text] }
-	    "uid"               { set gantt_project_id [$taskchild text] }
-	    "isnull"		{ set is_null [$taskchild text] }
-	    "duration"          { 
-		set duration [$taskchild text] 
+        switch $nodeName {
+            "Name"              { set task_name [$taskchild text] }
+	    "UID"               { set gantt_project_id [$taskchild text] }
+	    "IsNull"		{ set is_null [$taskchild text] }
+	    "Duration"          { set duration [$taskchild text]     }
+	    "RemainingDuration" { set remaining_duration [$taskchild text] }
+	    "Start"             { set start_date [$taskchild text] }
+	    "Finish"            { set end_date [$taskchild text] }
+	    "Priority"          { set priority [$taskchild text] }
+	    "Notes"             { set note [$taskchild text] }
+	    "OutlineNumber"     { 
+		set outline_number [$taskchild text] 
 	    }
-	    "remainingduration" { set remaining_duration [$taskchild text] }
-	    "start"             { set start_date [$taskchild text] }
-	    "finish"            { set end_date [$taskchild text] }
-	    "priority"          { set priority [$taskchild text] }
-	    "notes"             { set note [$taskchild text] }
-	    "outlinenumber"     { set outline_number [$taskchild text] }
-	    "percentcomplete"	{ set percent_completed [$taskchild text] }
-	    "extendedattribute" {
+	    "ExtendedAttribute" {
 		set fieldid ""
 		set fieldvalue ""
 		foreach attrtag [$taskchild childNodes] {
@@ -609,10 +600,10 @@ ad_proc -public im_gp_save_tasks2 {
 		    "188744007" { set task_id $fieldvalue }
 		}
 	    }
-	    "predecessorlink" { 
+	    "PredecessorLink" { 
 		# this is handled below, because we don't know our task id yet
 	    }
-	    "outlinelevel" - "id" - "calendaruid" {
+	    "OutlineLevel" - "ID" - "CalendarUID" {
 		# ignored 
 	    }
 	    "customproperty" - "task" - "depend" {
@@ -620,47 +611,30 @@ ad_proc -public im_gp_save_tasks2 {
 		continue 
 	    }
 	    default {
-		# Nothing
+		im_ganttproject_add_import "im_gantt_project" $nodeName
+		set column_name "[plsql_utility::generate_oracle_name xml_$nodeName]"
+		lappend gantt_field_update "$column_name = '[db_quote $nodeText]'"
 	    }
         }
-
-	# Store the original value in the im_gantt_projects table
-	# independent if we process the value or not..
-	im_ganttproject_add_import "im_gantt_project" $nodeName
-	set column_name "[plsql_utility::generate_oracle_name xml_$nodeName]"
-	lappend gantt_field_update "$column_name = '[db_quote $nodeText]'"
 	    
 	lappend xml_elements $nodeName
     }
 
-
-    # If no percent_completed is given explicitely (GanttProject(?))
-    # then calculate based on remaining duration.
-    # ToDo: Can we delete this piece?
-
-    if {"" != $duration} {
-    	set duration_seconds [ms_project_time_to_seconds $duration]
-    } else {
-	set duration_seconds 0
+    if {![info exists outline_number]} {
+	set outline_number 0
     }
 
-    if {"" == $percent_completed} {
-	if {$remaining_duration != "" && $duration != "" && 0 != $duration_seconds} {
-	    set remaining_seconds [ms_project_time_to_seconds $remaining_duration]
-	    if {$duration_seconds == 0} {
-		set percent_completed 100.0
-	    } else {
-		set percent_completed [expr round( 100.0 - (100.0 / $duration_seconds) * $remaining_seconds)]
-	    }
+    if {$remaining_duration!="" && $duration!=""} {
+	set duration_seconds [ms_project_time_to_seconds $duration]
+	set remaining_seconds [ms_project_time_to_seconds $remaining_duration]
+	if {$duration_seconds==0} {
+	    set percent_completed 100.0
+	} else {
+	    set percent_completed [expr round(100.0-(100.0/$duration_seconds)*$remaining_seconds)]
 	}
     }
 
-    ns_log Notice "im_gp_save_tasks2: $task_name: duration=$duration"
-    ns_log Notice "im_gp_save_tasks2: $task_name: percent_completed=$percent_completed"
-
-
     # -----------------------------------------------------
-    # For GanttProject only:
     # Extract the custom properties tpc0 (task_nr) and tpc1 (task_id)
     # for tasks that have been exported out of ]project-open[
     foreach taskchild [$task_node childNodes] {
@@ -678,16 +652,10 @@ ad_proc -public im_gp_save_tasks2 {
         }
     }
 
-    # MS-Project includes "tasks" for empty lines. We ignore these here.
-    if {"1" == $is_null} { return }
-
-    # MS-Project creates a task with ID=0 and an empty name,
-    # probably to represent the top-project. Let's ignore this one:
-    if {"" == $task_name && 0 == $gantt_project_id} { return }
+    if {$is_null} { return }
 
     # Normalize task_id from "" to 0
     if {"" == $task_id} { set task_id 0 }
-
 
     # Create a reasonable and unique "task_nr" if there wasn't (new task)
     # ToDo: Potentially dangerous - there could be a case with
@@ -713,54 +681,54 @@ ad_proc -public im_gp_save_tasks2 {
 	where	project_id = :super_project_id
     "
 
-    if {$debug_p} { ns_write "<li>$task_name...\n<li>task_nr='$task_nr', gantt_id=$gantt_project_id, task_id=$task_id" }
-
+    if {$debug} { ns_write "<li>$task_name...\n<li>task_nr='$task_nr', gantt_id=$gantt_project_id, task_id=$task_id" }
 
 
     # -----------------------------------------------------
-    # Determine the parent of the project.
-    # GanttProject: The super_project_id is determined by the recursive structure of tasks within task elements
-    set parent_id $super_project_id
-    # Microsoft Project: The WBS field contains the hierarchy. We have to cut off the last element, though
-    set outline_list [split $outline_number "\."]
-    if {[llength $outline_list] >= 2} {
-	# Cut off the last element of the list
-	set outline_list [lrange $outline_list 0 end-1]
-
-	# Join the elements together again with a "."
-	set outline_task_key "o[join $outline_list "."]"
-	
-	# Lookup this outline in the task_hash
-	if {[info exists task_hash($outline_task_key)]} {
-	    set parent_id $task_hash($outline_task_key)
-	}
-    }
-
-    # -----------------------------------------------------
-    # Check if the task has already been mapped to a GanttID
-    # in a previous run of this procedure.
+    # Check if we had mapped this task from a GanttProject ID
+    # to a different task_id or project_id in the database
     #
     if {[info exists task_hash($gantt_project_id)]} {
 	set task_id $task_hash($gantt_project_id)
     }
 
     # -----------------------------------------------------
-    # Check if a task with the task_nr exists in the DB
-    if {0 == $task_id} {
-	set task_id [db_string task_id_from_nr "
-		select	task_id 
-		from	im_timesheet_tasks_view
-		where	project_id = :parent_id and task_nr = :task_nr
-        " -default 0]
-    }
-
-    # -----------------------------------------------------
-    # Check if the task exists in the DB
-    set task_exists_p [db_string task_exists_p "
+    # Check if the task already exists in the database
+    set task_exists_p [db_string tasks_exists "
 	select	count(*)
-	from	im_timesheet_tasks
+	from	im_timesheet_tasks_view
 	where	task_id = :task_id
     "]
+
+    # -----------------------------------------------------
+    # Give it a second chance to deal with the case that there is
+    # already a task with the same task_nr in the same project (same level!):
+    set existing_task_id [db_string task_id_from_nr "
+	select	task_id 
+	from	im_timesheet_tasks_view
+	where	project_id = :super_project_id and task_nr = :task_nr
+    " -default 0]
+
+    if {0 != $existing_task_id} {
+	set task_hash($gantt_project_id) $existing_task_id
+	set task_hash("o$outline_number") $existing_task_id
+	set task_id $existing_task_id
+	set task_exists_p 1
+        if {$debug} { ns_write "<li>GanttProject: found task_id=$existing_task_id for task with task_nr=$task_nr" }
+    }
+
+    if {$create_tasks && [db_string check_for_existing_task_name "
+       select count(*) 
+       from im_projects
+       where 
+          parent_id = :super_project_id and
+          company_id = :company_id and
+          project_name = :task_name
+      "]>0} {
+	# ignore this one
+	# ad_return_complaint 1 "The task '$task_name' already exists or exists twice in the uploaded file."
+	# return [array get task_hash]
+    }
 
     # -----------------------------------------------------
     # Create a new task if:
@@ -769,7 +737,7 @@ ad_proc -public im_gp_save_tasks2 {
     if {0 == $task_id || !$task_exists_p} {
 
 	if {$create_tasks} {
-	    if {$debug_p} { ns_write "im_gp_save_tasks2: Creating new task with task_nr='$task_nr'\n" }
+	    if {$debug} { ns_write "im_gp_save_tasks2: Creating new task with task_nr='$task_nr'\n" }
 	    set task_id [im_exec_dml task_insert "
 	    	im_timesheet_task__new (
 			null,			-- p_task_id
@@ -780,7 +748,7 @@ ad_proc -public im_gp_save_tasks2 {
 			null,			-- context_id
 			:task_nr,
 			:task_name,
-			:parent_id,
+			:super_project_id,
 			:material_id,
 			:cost_center_id,
 			:uom_id,
@@ -792,22 +760,15 @@ ad_proc -public im_gp_save_tasks2 {
 
 	    # Write Audit Trail
 	    im_project_audit -action create -project_id $task_id
+
+	    set task_hash($gantt_project_id) $task_id
+	    set task_hash("o$outline_number") $task_id
 	}
 
     } else {
-	if {$create_tasks && $debug_p} { ns_write "Updating existing task\n" }
+	if {$create_tasks && $debug} { ns_write "Updating existing task\n" }
     }
 
-
-    # -----------------------------------------------------
-    # Write the mapping of gantt_project_id and task_id to the task_hash
-    if {0 != $task_id} {
-	set task_hash($gantt_project_id) $task_id
-	set task_hash(o$outline_number) $task_id
-    }
-
-
-    # -----------------------------------------------------
     # we have the proper task_id now, we can do the dependencies
     foreach taskchild [$task_node childNodes] {
 	set nodeName [$taskchild nodeName]
@@ -840,7 +801,7 @@ ad_proc -public im_gp_save_tasks2 {
 
     # ---------------------------------------------------------------
     # Process task sub-nodes
-    if {$debug_p} { ns_write "<ul>\n" }
+    if {$debug} { ns_write "<ul>\n" }
     foreach taskchild [$task_node childNodes] {
 	ns_log Notice "im_gp_save_tasks2: process subtasks: nodeName=[$taskchild nodeName]"
 
@@ -851,7 +812,7 @@ ad_proc -public im_gp_save_tasks2 {
 	    depend { 
 		if {$save_dependencies} {
 
-		    if {$debug_p} { ns_write "<li>Creating dependency relationship\n" }
+		    if {$debug} { ns_write "<li>Creating dependency relationship\n" }
 
 		    im_project_create_dependency \
 			-task_id_one [$taskchild getAttribute id] \
@@ -878,42 +839,43 @@ ad_proc -public im_gp_save_tasks2 {
 	    }
 	}
     }
-    if {$debug_p} { ns_write "</ul>\n" }
+    if {$debug} { ns_write "</ul>\n" }
+
+    set outline_number_dot [string last "." $outline_number]
+    if {$save_dependencies && $outline_number_dot>=0} {
+	set parent_outline_number [string range $outline_number 0 [expr $outline_number_dot-1]]
+
+	if {[info exists task_hash("o$parent_outline_number")]} {
+	    set super_project_id $task_hash("o$parent_outline_number")
+	}
+    }
 
     db_dml project_update "
-	update im_projects set
-		project_name		= :task_name,
-		project_nr		= :task_nr,
-		parent_id		= :parent_id,
-		start_date		= :start_date,
-		end_date		= :end_date,
-		note			= :note,
-		sort_order		= :my_sort_order,
-		percent_completed	= :percent_completed
-	where
+	    update im_projects set
+		project_name	= :task_name,
+		project_nr	= :task_nr,
+		parent_id	= :super_project_id,
+		start_date	= :start_date,
+		end_date	= :end_date,
+		note		= :note,
+		sort_order	= :my_sort_order,
+		percent_completed = :percent_completed
+	    where
 		project_id = :task_id
-    "
-
-    db_dml update_task "
-	update im_timesheet_tasks set
-		planned_units = :duration_seconds / 3600.0,
-		billable_units = :duration_seconds / 3600.0,
-		uom_id = [im_uom_hour]
-	where
-		task_id = :task_id
     "
 
     if {[llength $xml_elements]>0} {
 	lappend gantt_field_update "xml_elements='[db_quote $xml_elements]'"
 
 	if {[db_string check_gantt_project_entry "
-		select	count(*) = 0
-		from	im_gantt_projects 
-		where	project_id=:task_id
+           select count(*)=0 
+           from im_gantt_projects 
+           where project_id=:task_id
         "]} {
 	    db_dml add_gantt_project_entry "
-		insert into im_gantt_projects (project_id, xml_elements) values (:task_id, '')
-	    "
+               insert into im_gantt_projects 
+                  (project_id,xml_elements) 
+                  values (:task_id,'')"
 	}
 	
 	db_dml gantt_project_update "
@@ -935,10 +897,9 @@ ad_proc -public ms_project_time_to_seconds {
 } {
     converts the ms project time string to seconds
 } {
-    set days 0
-    regexp {PT([0-9]+)H([0-9]+)M([0-9]+)S} $time all hours minutes seconds
+    regexp {PT([0-9]+)H([0-9]+)M([0-9]+)S} $time all days hours minutes 
 
-    return [expr $seconds + 60*$minutes + 60*60*$hours + 60*60*24*$days]
+    return [expr 60*$minutes+60*60*$hours+60*60*24*$days]
 }
 
 
@@ -951,7 +912,7 @@ ad_proc -public ms_project_time_to_seconds {
 # ----------------------------------------------------------------------
 
 ad_proc -public im_gp_save_allocations { 
-    {-debug_p 0}
+    {-debug 0}
     allocations_node
     task_hash_array
     resource_hash_array
@@ -982,13 +943,13 @@ ad_proc -public im_gp_save_allocations {
 		}
 
 		if {![info exists task_hash($task_id)]} {
-		    if {$debug_p} { ns_write "<li>Allocation: <font color=red>Didn't find task \#$task_id</font>. Skipping... \n" }
+		    if {$debug} { ns_write "<li>Allocation: <font color=red>Didn't find task \#$task_id</font>. Skipping... \n" }
 		    continue
 		}
 		set task_id $task_hash($task_id)
 
 		if {![info exists resource_hash($resource_id)]} {
-		    if {$debug_p} { ns_write "<li>Allocation: <font color=red>Didn't find user \#$resource_id</font>. Skipping... \n" }
+		    if {$debug} { ns_write "<li>Allocation: <font color=red>Didn't find user \#$resource_id</font>. Skipping... \n" }
 		    continue
 		}
 		set resource_id $resource_hash($resource_id)
@@ -1004,7 +965,7 @@ ad_proc -public im_gp_save_allocations {
 
 		set user_name [im_name_from_user_id $resource_id]
 		set task_name [db_string task_name "select project_name from im_projects where project_id=:task_id" -default $task_id]
-		if {$debug_p} { ns_write "<li>Allocation: $user_name allocated to $task_name with $percentage%\n" }
+		if {$debug} { ns_write "<li>Allocation: $user_name allocated to $task_name with $percentage%\n" }
 		ns_log Notice "im_gp_save_allocations: [$child asXML]"
 
 	    }
@@ -1095,7 +1056,7 @@ ad_proc -public im_gp_find_person_for_name {
 
 
 ad_proc -public im_gp_save_resources { 
-    {-debug_p 0}
+    {-debug 0}
     {-project_id 0}
     resources_node
 } {
@@ -1126,7 +1087,7 @@ ad_proc -public im_gp_save_resources {
 		    set person_id [im_gp_find_person_for_name -name $name -email $email]
 		    
 		    if {"" != $person_id} {
-			if {$debug_p} { ns_write "<li>Resource: $name as $function\n" }
+			if {$debug} { ns_write "<li>Resource: $name as $function\n" }
 			set resource_hash($resource_id) $person_id
 			
 			# make the resource a member of the project
@@ -1173,7 +1134,7 @@ ad_proc -public im_gp_save_resources {
                                WHERE person_id=:person_id"
 			}
 		    } else {
-			if {$debug_p} { ns_write "<li>Resource: $name - <font color=red>Unknown Resource</font>\n" }
+			if {$debug} { ns_write "<li>Resource: $name - <font color=red>Unknown Resource</font>\n" }
 			set name_frags [split $name " "]
 			set first_names [join [lrange $name_frags 0 end-1] ""]
 			set last_name [join [lrange $name_frags end end] ""]
@@ -1186,7 +1147,7 @@ ad_proc -public im_gp_save_resources {
 		    "
 		    }
 		    
-		    if {$debug_p} { ns_write "<li>Resource: ($resource_id) -&gt; $person_id\n" }
+		    if {$debug} { ns_write "<li>Resource: ($resource_id) -&gt; $person_id\n" }
 		    
 		    ns_log Notice "im_gp_save_resources: [$child asXML]"
 		}
@@ -2498,277 +2459,4 @@ ad_proc -public im_ganttproject_add_import {
     }		
 }
 
-
-
-# ----------------------------------------------------------------------
-# Show the extra GanttProject fields in a TaskViewPage
-# ---------------------------------------------------------------------
-
-ad_proc -public im_ganttproject_task_info_component {
-    task_id
-} {
-    set html ""
-
-    db_multirow member_list member_list "
-        SELECT 
-            user_id,
-            im_name_from_user_id(user_id) as name,
-            percentage,
-            im_biz_object_members.rel_id AS rel_id
-        from 
-            acs_rels,users,im_biz_object_members 
-        where 
-            object_id_two=user_id and object_id_one=:task_id
-            and acs_rels.rel_id=im_biz_object_members.rel_id
-            "
-
-    template::list::create \
-	-name member_list \
-	-key user_id \
-	-pass_properties { return_url project_id task_id } \
-	-elements {
-	    name {
-		label "[_ intranet-core.Name]"
-		link_url_eval { 
-		    [ return "/intranet/users/view?user_id=$user_id" ]
-		}
-	    }
-	    percentage {
-		label "[_ intranet-core.Percentage]"
-		link_url_eval {
-		    [ return "/intranet-timesheet2-tasks/edit-resource?[export_vars -url { return_url rel_id }]" ]
-		}
-	    }
-	} \
-	-bulk_actions [list [_ intranet-core.Delete] "/intranet-timesheet2-tasks/delete-resource" "delete resources" ] \
-	-bulk_action_export_vars { return_url project_id task_id } \
-	-bulk_action_method post
-    
-    append html [template::list::render -name member_list ]
-
-    return $html
-}
-
-
-
-# ----------------------------------------------------------------------
-# TaskJuggler
-# ---------------------------------------------------------------------
-
-
-ad_proc -public im_taskjuggler_task_path { 
-    project_id
-} {
-    Returns a TJ "absolute" path for a task.
-    Example: "t1234.t2345.t3456"
-} {
-    set parent_id [db_string super_project "select parent_id from im_projects where project_id = :project_id" -default ""]
-    if {"" != $parent_id} {
-
-        #set super_project_path [util_memoize [list im_taskjuggler_task_path $parent_id]]
-        set super_project_path [im_taskjuggler_task_path $parent_id]
-
-	if {"" != $super_project_path} { append super_project_path "." }
-	return "${super_project_path}t$project_id"
-    } else {
-	return ""
-    }
-}
-
-
-ad_proc -public im_taskjuggler_write_subtasks { 
-    {-depth 0 }
-    {-default_start ""}
-    project_id
-} {
-    Returns a TJ specification of the project's tasks
-} {
-    # Get sub-tasks in the right sort_order
-    set project_list [db_list sorted_query "
-	select
-		p.project_id
-	from	
-		im_projects p,
-		acs_objects o
-	where
-		p.project_id = o.object_id
-		and parent_id = :project_id
-		--  and p.project_type_id = [im_project_type_task]
-                and p.project_status_id not in (
-			[im_project_status_deleted], 
-			[im_project_status_closed]
-		)
-	order by sort_order
-    "]
-
-    set result ""
-    foreach project_id $project_list {
-	append result [im_taskjuggler_write_task -depth $depth -default_start $default_start $project_id]
-    }
-
-    return $result
-}
-
-ad_proc -public im_taskjuggler_write_task { 
-    {-depth 0 }
-    {-default_start ""}
-    project_id
-} {
-    Write out the information about one specific task and then call
-    a recursive routine to write out the stuff below the task.
-} {
-    set org_project_id $project_id
-    set indent ""
-    for {set i 0} {$i < $depth} {incr i} { append indent "\t" }
-    incr depth
-    set tj ""
-
-    # Get everything about the project
-    if {![db_0or1row project_info "
-        select  p.*,
-		t.*,
-		o.object_type,
-                p.start_date::date as start_date,
-                p.end_date::date as end_date,
-                g.*,
-		(select count(*) from im_projects sub_p where sub_p.parent_id = :project_id) as num_subtasks
-        from    im_projects p
-		LEFT OUTER JOIN im_timesheet_tasks t ON (p.project_id = t.task_id)
-		LEFT OUTER JOIN im_gantt_projects g ON (p.project_id = g.project_id),
-		acs_objects o
-        where   p.project_id = :project_id
-		and p.project_id = o.object_id
-    "]} {
-	ad_return_complaint 1 [lang::message::lookup "" intranet-ganttproject.Project_Not_Found "Didn't find project \#%project_id%"]
-	return
-    }
-
-
-    # --------------------------------------------------------------
-    # Massage values
-    if {"" == $priority} { set priority "1" }
-    if {"" == $start_date} { set start_date $default_start_date }
-    if {"" == $start_date} { set start_date [db_string today "select to_char(now(), 'YYYY-MM-DD')"] }
-
-    append tj "${indent}task t$org_project_id \"$project_name\" {\n"
-
-
-
-    # --------------------------------------------------------------
-    # Add dependencies to predecessors 
-    # 9650 == 'Intranet Timesheet Task Dependency Type'
-    set dependency_sql "
-	SELECT DISTINCT
-		task_id_two
-	FROM	im_timesheet_task_dependencies ttd,
-		im_projects p
-	WHERE	ttd.task_id_two = p.project_id AND
-		task_id_one = :task_id AND 
-		dependency_type_id=9650 AND 
-		task_id_two <> :task_id
-    "
-    set dependency_ctr 0
-    db_foreach dependency $dependency_sql {
-	set task_path [im_taskjuggler_task_path $task_id_two]
-	append tj "${indent}\tdepends $task_path		# $task_id_two\n"
-	incr dependency_ctr
-    }
-
-    # Make tasks without dependency start at the start of the project
-    if {0 == $dependency_ctr} {
-
-	# Write the start command once for the topmost task
-	if {0 != $num_subtasks} {
-	    append tj "${indent}\tstart $default_start\n"
-	}
-    }
-
-
-
-    # --------------------------------------------------------------
-    # Write out dependent tasks
-
-    set sub_tasks [im_taskjuggler_write_subtasks -depth $depth -default_start $default_start $org_project_id]
-    append tj $sub_tasks
-
-
-    # Write out effort and assignment information only for leaf tasks
-    if {0 == $num_subtasks} {
-	
-	# --------------------------------------------------------------
-	# Planned units
-	if {"" != $planned_units} {
-	    set effort_tj "effort $planned_units"
-	    switch $uom_id {
-		321 {
-		    # Day
-		    append effort_tj "d"
-		}
-		320 {
-		    # Hour
-		    append effort_tj "h"
-		}
-		default {
-		    ad_return_complaint 1 "Found invalid UoM for a timesheet task: $uom_id"
-		    ad_script_abort
-		}
-	    }
-	    append tj "${indent}\t$effort_tj\n"
-	}
-
-
-	# --------------------------------------------------------------
-	# Allocations
-	set project_allocations_sql "
-	select	
-		r.object_id_one AS task_id,
-                r.object_id_two AS user_id,
-		coalesce(bom.percentage, 100.0) as percentage
-	from	acs_rels r,
-		im_biz_object_members bom
-	where
-                r.rel_id = bom.rel_id AND
-		r.object_id_one = :org_project_id
-        "
-	set allocation_ctr 0
-	db_foreach project_allocations $project_allocations_sql {
-	    incr allocation_ctr
-	    set allocation_hours [expr $percentage * 8.0 / 100.0]
-	    if {$allocation_hours < 0.1 } { 
-		# Ignore allocations below 1%.
-		append tj "${indent}\t\# WARNING: Ignoring assignment percentage of $percentage because it is below the TJ resolution\n"
-		continue 
-	    }
-	    if {$allocation_hours < 1.0} {
-		# Tj allocation precision is 1h.
-		append tj "${indent}\t\# WARNING: Increasing allocation from $allocation_hours to 1.0h, because of TJ resolution\n"
-		set allocation_hours 1.0 
-	}
-	    append tj "${indent}\tallocate r$user_id { limits { dailymax ${allocation_hours}h } }\n"
-	}
-	if {0 == $allocation_ctr} {
-	    append tj "${indent}\tallocate members\n"
-	}
-
-
-	# --------------------------------------------------------------
-	# Percent Completed
-	# Only add this to leaf tasks
-	
-	if {"" == [string trim $sub_tasks]} {
-	    if {"" != $percent_completed} {
-		append tj "${indent}\tcomplete $percent_completed\n"
-	    }
-	}
-
-    }
-
-
-    # --------------------------------------------------------------
-    # Close the task
-
-    append tj "${indent}}\n"
-
-    return $tj
-}
 
