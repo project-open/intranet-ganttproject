@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="intranet-ganttproject" package_version="3.4.0.7.5" locale="de_DE" charset="ISO-8859-1">
+<message_catalog package_key="intranet-ganttproject" locale="de_DE" charset="ISO-8859-1">
 
   <msg key="Dim_day_of_month">Tag</msg>
   <msg key="Dim_month_of_year">Monat</msg>
@@ -7,11 +7,41 @@
   <msg key="Dim_week_of_year">Woche</msg>
   <msg key="Dim_year">Jahr</msg>
   <msg key="Download_Gantt_File">Download Gantt Projekt Datei</msg>
+  <msg key="Export_to_GanttProject">Export nach GanttProject</msg>
+  <msg key="Export_to_MS_Projectj_or_ProjectLibre">Export nach MS Project oder ProjectLibre</msg>
+  <msg key="Force_start_on_start_date">Start-Bedingung für die gewählten Aufgaben setzen</msg>
+  <msg key="Gantt_Project_Note">In MS Project müssen Sie zunächst den Plan in XLS speichern. Dazu 'Speichern unter' in MS Project anwählen und Dateityp XML-Format anwählen.</msg>
   <msg key="Gantt_Resources">Gantt Ressourcen</msg>
+  <msg key="Ignore_the_issue">Problem für alle Projekte ignorieren</msg>
+  <msg key="Ignore_the_issue_for_this_project">Problem für dieses Projekt ignorieren</msg>
+  <msg key="Import_from_GP_PL_MSP">Import von GanttProject, ProjectLibre oder MS Project</msg>
+  <msg key="Import_from_program">Einlesen von MS Project .XML Projektplan oder GanttProject .GAN Projektplan</msg>
+  <msg key="Import_Gantt_Tasks">Einlesen von MS Project, Project Libre und GanttChart Projektplan</msg>
+  <msg key="more_tasks">Weitere Aufgaben</msg>
+  <msg key="MS_Project_Warnings">MS Project Warnungen</msg>
   <msg key="No_Gantt_preview_available">Keine Gantt Vorschau verfügbar</msg>
   <msg key="OK">OK</msg>
+  <msg key="Please_Note">Hinweis</msg>
   <msg key="Project_Gantt_Resource_Assignations">Gantt Ressourcen Zuweisung</msg>
   <msg key="Project_Gantt_View">Gantt Ansicht</msg>
+  <msg key="Resource_Planning_Report">Resource Planning Report</msg>
   <msg key="Scheduling">Planung</msg>
+  <msg key="Software">Links für Informationen zu weiteren Software Produkten</msg>
+  <msg key="Task">Aufgabe</msg>
+  <msg key="Tasks_with_empty_start_end_date">Aufgaben ohne Start- und/oder Endedatum!</msg>
+  <msg key="Tasks_with_empty_start_end_date_msg">Die nachfolgenden Aufgaben haben keine Start- und/oder Endedatum. Bitte setzen Sie das Start und/oder Endedatum.</msg>
+  <msg key="Tasks_With_White_Spaces">Aufgabe mit Leerzeichen am Anfang oder Ende des D</msg>
+  <msg key="Tasks_with_whitepaces_fix">Bitte entfernen Sie die Leerzeichen am Anfang oder Ende des Projektnamens.</msg>
+  <msg key="Tasks_Without_Assignments">Aufgaben ohne Ressourcen-Zuweisung!</msg>
+  <msg key="Tasks_without_assignments_msg">Bitte weisen Sie der Aufgabe eine Ressource (Mitglied) zu mit einer Auslastung grösser 0 Prozent.</msg>
+  <msg key="Tasks_without_assignments_please_assign"></msg>
+  <msg key="Tasks_without_start_constraint">Es wurden Aufgaben ohne Start-Bedingung gefunden!</msg>
+  <msg key="Tasks_without_start_constraint_msg">Die nachfolgenden Aufgaben haben keine Start-Bedingung für die Ermittlung des Startdatums. MS Project wird diese Aufgaben mit dem Startdatum des Projektes behandeln, bis Sie eine Start-Bedingung eingegeben haben.</msg>
+  <msg key="Upload">Projektplan einlesen</msg>
   <msg key="Upload_Gantt_File">Gantt-Datei hochladen</msg>
+  <msg key="Upload_Project_File">Einlesen von MS Project .XML Projektplan oder GanttProject .GAN Projektplan</msg>
+  <msg key="Warnings_portlet_msg">MS Project kann ein nicht gewünschtes Verhalten zeigen, wenn Sie dieses Projekt nach MS Project exportieren.
+
+
+Diese Portlet zeigt Hinweise und Warnungen und bietet Korrekturen für die Problembehandlung.</msg>
 </message_catalog>
