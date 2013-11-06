@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<message_catalog package_key="intranet-ganttproject" package_version="3.4.0.7.0" locale="en_US" charset="ISO-8859-1">
+<message_catalog package_key="intranet-ganttproject" locale="en_US" charset="ISO-8859-1">
 
   <msg key="Dim_day_of_month">Day</msg>
   <msg key="Dim_month_of_year">Month</msg>
@@ -8,13 +8,38 @@
   <msg key="Dim_year">Year</msg>
   <msg key="Download_Gantt_File">Download GanttProject File</msg>
   <msg key="Download_OpenProj_File">Download OpenProj Schedule</msg>
+  <msg key="Export_to_GanttProject">Export to GanttProject</msg>
+  <msg key="Export_to_MS_Projectj_or_ProjectLibre">Export to MS_Project or ProjectLibre</msg>
+  <msg key="Force_start_on_start_date">Set a start constraint for the specified tasks</msg>
+  <msg key="Gantt_Project_Note">With GanttProject, it is OK to upload the normal '.gan' file here.</msg>
   <msg key="Gantt_Resources">Gantt Resources</msg>
+  <msg key="Ignore_the_issue">Ignore the issue for all projects</msg>
+  <msg key="Ignore_the_issue_for_this_project">Ignore the issue for this project</msg>
+  <msg key="Import_from_GP_PL_MSP">Import from GP, PL, or MSP</msg>
+  <msg key="Import_from_program">Import Projectplan from MS Project or GanttProject</msg>
+  <msg key="more_tasks">Weitere Aufgaben</msg>
+  <msg key="MS_Project_Warnings">MS Project Warnings</msg>
   <msg key="No_Gantt_preview_available">No Gantt Preview Available</msg>
   <msg key="OK">OK</msg>
   <msg key="Project_Gantt_Resource">Project Gantt Resources</msg>
   <msg key="Project_Gantt_Resource_Assignations">Gantt Resource Assignations</msg>
   <msg key="Project_Gantt_Schedule">Project Gantt Schedule</msg>
   <msg key="Project_Gantt_View">Gantt View</msg>
+  <msg key="Resource_Planning_Report">Resource Planning Report</msg>
   <msg key="Scheduling">Scheduling</msg>
+  <msg key="Task">Task</msg>
+  <msg key="Tasks_with_empty_start_end_date">Tasks With Empty Start- or End Date</msg>
+  <msg key="Tasks_with_empty_start_end_date_assign">Please set the start- and end date of the tasks.</msg>
+  <msg key="Tasks_with_empty_start_end_date_msg">The following tasks don't have have a start- or end date defined.</msg>
+  <msg key="Tasks_With_White_Spaces">Tasks With White Spaces</msg>
+  <msg key="Tasks_with_whitepaces_fix">Please remove the white spaces before and after the project name.</msg>
+  <msg key="Tasks_Without_Assignments">Tasks Without Assignment</msg>
+  <msg key="Tasks_without_assignments_msg">Please assign at least one resources to these tasks with a percentage greater then 0.</msg>
+  <msg key="Tasks_without_assignments_please_assign">asas</msg>
+  <msg key="Tasks_without_start_constraint">Found Tasks Without Start-Constraint</msg>
+  <msg key="Tasks_without_start_constraint_assign">Aufgaben ohne Startdatum zuweisen</msg>
+  <msg key="Tasks_without_start_constraint_msg">The following tasks don't have have a constraint to determine their start date. MS-Project will schedule these tasks to start together with the main project, unless you explicitely set a start constraint.</msg>
   <msg key="Upload_Gantt_File">Upload Gantt File</msg>
+  <msg key="Upload_Project_File">Upload GanttProject .xml File</msg>
+  <msg key="Warnings_portlet_msg">Microsoft (MS-) Project 2003-2010 may behave in unexpected ways when you try to export your project schedule. This portlet will issue warnings and offer fixes if tasks are likely to be affected by the MS-Project 'scheduling engine'.</msg>
 </message_catalog>
