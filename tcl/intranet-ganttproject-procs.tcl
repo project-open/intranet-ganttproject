@@ -204,6 +204,12 @@ ad_proc -public im_ganttproject_ms_project_warning_component {
 } {
     Shows warnings for MS-Project imports
 } {
+    # Only show for GanttProjects
+    set project_type_id [db_string project_type "select project_type_id from im_projects where project_id = :project_id" -default ""]
+    if {![im_category_is_a $project_type_id [im_project_type_consulting]} {
+	return ""
+    }
+
     # Make sure project_id is an integer...
     im_security_alert_check_integer -location "im_ganttproject_ms_project_warning_component" -value $project_id
     set params [list \
