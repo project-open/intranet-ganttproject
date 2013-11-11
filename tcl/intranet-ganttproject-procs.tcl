@@ -206,7 +206,7 @@ ad_proc -public im_ganttproject_ms_project_warning_component {
 } {
     # Only show for GanttProjects
     set project_type_id [db_string project_type "select project_type_id from im_projects where project_id = :project_id" -default ""]
-    if {![im_category_is_a $project_type_id [im_project_type_consulting]} {
+    if {![im_category_is_a $project_type_id [im_project_type_consulting]]} {
 	return ""
     }
 
