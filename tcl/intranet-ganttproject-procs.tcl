@@ -2179,7 +2179,7 @@ ad_proc -public im_ganttproject_resource_component {
     if {"" == $end_date} {
 	set end_date [db_string end_date "
 	select
-		to_char(max(child.end_date), 'YYYY-MM-DD')
+		to_char(max(child.end_date)::date + 1, 'YYYY-MM-DD')
 	from
 		im_projects parent,
 		im_projects child,
@@ -2189,7 +2189,6 @@ ad_proc -public im_ganttproject_resource_component {
 		r.object_id_one = child.project_id
 		and r.rel_id = m.rel_id
 		and m.percentage > 0
-
 		and parent.project_id in ([join $project_id ", "])
 		and parent.parent_id is null
 		and child.tree_sortkey
