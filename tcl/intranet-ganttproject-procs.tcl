@@ -471,9 +471,12 @@ ad_proc -public im_gp_check_duplicate_task_names {
 	set task_name $task_hash($wbs)
 	set parent_name $task_hash($parent_wbs)
 
+     set task_name_quoted [ad_quotehtml $task_name]
+	set parent_name_quoted [ad_quotehtml $parent_name]
+
 	append error_html "<li>
-	       		  <b>[lang::message::lookup "" intranet-ganttproject.Found_duplicate_task "Found a duplicate task '%task_name%'"]</b>:<br>
-	       		  [lang::message::lookup "" intranet-ganttproject.Found_duplicate_task1 "The parent task '%parent_name%' has more than one sub-task with the name '%task_name%'"].<br>
+	       		  <b>[lang::message::lookup "" intranet-ganttproject.Found_duplicate_task "Found a duplicate task '%task_name_quoted%'"]</b>:<br>
+	       		  [lang::message::lookup "" intranet-ganttproject.Found_duplicate_task1 "The parent task '%parent_name_quoted%' has more than one sub-task with the name '%task_name_quoted%'"].<br>
 	       		  [lang::message::lookup "" intranet-ganttproject.Found_duplicate_task2 "\]project-open\[ does not allow for children with the same name."]
         "
 	
@@ -504,7 +507,7 @@ ad_proc -public im_gp_check_duplicate_task_names2 {
 
 	switch $nodeName {
 	    wbs - name {
-		lappend task [list $nodeName $nodeText]
+		lappend task [list $nodeName "$nodeText"]
 	    }
 	}
     }
