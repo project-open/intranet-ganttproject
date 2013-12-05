@@ -50,7 +50,7 @@ if {"" != $project_id} {
 set parent_project_id ""
 set project_path $project_nr
 set customer_id [db_string customer "select company_id from im_companies where company_path = :customer_path"]
-set project_id [project::new \
+set project_id [im_project::new \
 		    -project_name	$project_name \
 		    -project_nr		$project_nr \
 		    -project_path	$project_path \
