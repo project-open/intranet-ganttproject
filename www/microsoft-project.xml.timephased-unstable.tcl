@@ -444,9 +444,9 @@ db_foreach project_allocations $project_allocations_sql {
 	set units_diff 100
 	if {$units > 0} { set units_diff [expr 100.0 * abs(($units - $xml_units) / $units)] }
         ns_log Notice "microsoft-project: TimephasedData: rel_id=$rel_id, $task_id != $xml_taskuid, $user_id != $xml_resourceuid, $units != $xml_units, units_diff=$units_diff"
-	if {$task_id != $xml_taskuid} { sset xml_exists_p 0 }
-	if {$user_id != $xml_resourceuid} { ssset xml_exists_p 0 }
-	if {$units_diff > 10.0} { sssset xml_exists_p 0 }
+	if {$task_id != $xml_taskuid} { set xml_exists_p 0 }
+	if {$user_id != $xml_resourceuid} { set xml_exists_p 0 }
+	if {$units_diff > 10.0} { set xml_exists_p 0 }
     }
 
     if {!$xml_exists_p} {
