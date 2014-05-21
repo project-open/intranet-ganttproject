@@ -1121,6 +1121,7 @@ ad_proc -public im_gp_save_tasks2 {
 	    "percentcomplete"	{ set percent_completed $nodeText }
 	    "constrainttype"	{
 		if {"" != $nodeText} {
+		    im_security_alert_check_alphanum -location "im_gp_save_tasks2" -value $nodeText
 		    set scheduling_constraint_id [util_memoize [list db_string contype "select category_id from im_categories where category_type = 'Intranet Timesheet Task Scheduling Type' and aux_int1 = '$nodeText'" -default ""]]
 		}
 	    }

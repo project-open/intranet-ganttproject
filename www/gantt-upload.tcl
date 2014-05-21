@@ -67,7 +67,7 @@ if {"" != $parent_id} {
 # Setup the subnavbar
 set bind_vars [ns_set create]
 ns_set put $bind_vars project_id $project_id
-set parent_menu_id [util_memoize [list db_string parent_menu "select menu_id from im_menus where label='project'" -default 0]]
+set parent_menu_id [im_menu_id_from_label "project"]
 # set menu_label "project_summary"
 set menu_label ""
 
