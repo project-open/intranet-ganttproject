@@ -24,7 +24,7 @@ ad_library {
 ad_proc -public im_package_ganttproject_id {} {
     Returns the package id of the intranet-ganttproject module
 } {
-    return [util_memoize "im_package_ganttproject_id_helper"]
+    return [util_memoize im_package_ganttproject_id_helper]
 }
 
 ad_proc -private im_package_ganttproject_id_helper {} {
@@ -3424,9 +3424,7 @@ ad_proc -public im_ganttproject_add_import {
     # Check if column exists
     set column_exists_p [im_column_exists ${object_type}s $column_name]
     if {$column_exists_p} { return }
-
-    set field_present_command "attribute::exists_p $object_type $column_name"
-    set field_present [util_memoize $field_present_command]
+    set field_present [util_memoize [list attribute::exists_p $object_type $column_name]]
     if {!$field_present} {
 	attribute::add  -min_n_values 0 -max_n_values 1 "$object_type" "string" $column_name $column_name
 	# Flush all permissions (very slow!)
@@ -3712,6 +3710,7 @@ ad_proc im_ganttproject_skill_profile_assignment_select_helper {
 		if {$person_skill_id != $profile_skill_id} { continue }
 		
 		# Take out the experience score for high/medium/low/unconfirmed
+		im_security_alert_check_integer -location "im_ganttproject_skill_profile_assignment_select_helper: person_confirmed_experience_id" -value $person_confirmed_experience_id
 		set confirmed_score [util_memoize [list db_string experience_score "select coalesce(aux_int1, 1) from im_categories where category_id = $person_confirmed_experience_id" -default 1]]
 		set score [expr $score + $confirmed_score]
 	    }
