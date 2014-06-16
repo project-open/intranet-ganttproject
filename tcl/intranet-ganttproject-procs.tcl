@@ -2204,6 +2204,7 @@ ad_proc -public im_ganttproject_resource_component {
     # Adaptive behaviour - limit the size of the component to a summary
     # suitable for the left/right columns of a project.
     if {$auto_open | "" == $top_vars} {
+
 	set duration_days [db_string dur "select to_date(:end_date, 'YYYY-MM-DD') - to_date(:start_date, 'YYYY-MM-DD')"]
 	if {"" == $duration_days} { set duration_days 0 }
 	if {$duration_days < 0} { set duration_days 0 }
@@ -2211,17 +2212,24 @@ ad_proc -public im_ganttproject_resource_component {
 	set duration_weeks [expr $duration_days / 7]
 	set duration_months [expr $duration_days / 30]
 	set duration_quarters [expr $duration_days / 91]
+	set duration_years [expr $duration_days / 360]
+	set duration_decades [expr $duration_days / 3600]
 
 	set days_too_long [expr $duration_days > $max_col]
 	set weeks_too_long [expr $duration_weeks > $max_col]
 	set months_too_long [expr $duration_months > $max_col]
 	set quarters_too_long [expr $duration_quarters > $max_col]
+        set years_too_long [expr $duration_years > $max_col]
+        set decades_too_long [expr $duration_decades > $max_col]
 
 	set top_vars "week_of_year day_of_month"
 	if {$days_too_long} { set top_vars "month_of_year week_of_year" }
 	if {$weeks_too_long} { set top_vars "quarter_of_year month_of_year" }
 	if {$months_too_long} { set top_vars "year quarter_of_year" }
 	if {$quarters_too_long} { set top_vars "year quarter_of_year" }
+	if {$years_too_long} { set top_vars "year" }
+	if {$decades_too_long} { set top_vars "decade" }
+
     }
 
     set top_vars [im_ganttproject_zoom_top_vars -zoom $zoom -top_vars $top_vars]
@@ -2306,6 +2314,7 @@ ad_proc -public im_ganttproject_resource_component {
 		CASE WHEN h.user_id in (select member_id from group_distinct_member_map where group_id = [im_profile_skill_profile]) THEN '' ELSE 'Natural Person' END as skill_p,
 
 		'<a href=${project_url}'||project_id||'>'||project_name||'</a>' as project_name_link,
+		substr(to_char(h.d, 'YYYY'), 1, 3) || '0' as decade,
 		to_char(h.d, 'YYYY') as year,
 		'<!--' || to_char(h.d, 'YYYY') || '-->Q' || to_char(h.d, 'Q') as quarter_of_year,
 		'<!--' || to_char(h.d, 'YYYY-MM') || '-->' || to_char(h.d, 'Mon') as month_of_year,
@@ -2661,6 +2670,7 @@ ad_proc -public im_ganttproject_resource_component {
 	    set val_month [expr round($val/22)]
 	    set val_quarter [expr round($val/66)]
 	    set val_year [expr round($val/260)]
+	    set val_decade [expr round($val/2600)]
 
 	    switch $period {
 		"day_of_month" { set val $val_day }
@@ -2668,6 +2678,7 @@ ad_proc -public im_ganttproject_resource_component {
 		"month_of_year" { set val "$val_month" }
 		"quarter_of_year" { set val "$val_quarter" }
 		"year" { set val "$val_year" }
+		"decade" { set val "$val_decade" }
 		default { ad_return_complaint 1 "Bad period: $period" }
 	    }
 
@@ -2863,10 +2874,8 @@ ad_proc -public im_ganttproject_gantt_component {
     # Adaptive behaviour - limit the size of the component to a summary
     # suitable for the left/right columns of a project.
     if {$auto_open || "" == $top_vars} {
-
-	set duration_days [db_string dur "
-		select to_date(:end_date, 'YYYY-MM-DD') - to_date(:start_date, 'YYYY-MM-DD')
-	"]
+	
+	set duration_days [db_string dur "select to_date(:end_date, 'YYYY-MM-DD') - to_date(:start_date, 'YYYY-MM-DD')"]
 	if {"" == $duration_days} { set duration_days 0 }
 	if {$duration_days < 0} { set duration_days 0 }
 
@@ -2874,17 +2883,22 @@ ad_proc -public im_ganttproject_gantt_component {
 	set duration_months [expr $duration_days / 30]
 	set duration_quarters [expr $duration_days / 91]
 	set duration_years [expr $duration_days / 365]
+        set duration_decades [expr $duration_days / 3650]
 
-	set days_too_long [expr $duration_days > $max_col]
-	set weeks_too_long [expr $duration_weeks > $max_col]
-	set months_too_long [expr $duration_months > $max_col]
-	set quarters_too_long [expr $duration_quarters > $max_col]
+	set days_too_long_p [expr $duration_days > $max_col]
+	set weeks_too_long_p [expr $duration_weeks > $max_col]
+	set months_too_long_p [expr $duration_months > $max_col]
+	set quarters_too_long_p [expr $duration_quarters > $max_col]
+        set years_too_long_p [expr $duration_years > $max_col]
+        set decades_too_long_p [expr $duration_decades > $max_col]
 
 	set top_vars "week_of_year day_of_month"
-	if {$days_too_long} { set top_vars "month_of_year week_of_year" }
-	if {$weeks_too_long} { set top_vars "month_of_year" }
-	if {$months_too_long} { set top_vars "year quarter_of_year" }
-	if {$quarters_too_long} { set top_vars "year quarter_of_year" }
+	if { $days_too_long_p } { set top_vars "month_of_year week_of_year" }
+	if { $weeks_too_long_p } { set top_vars "month_of_year" }
+	if { $months_too_long_p } { set top_vars "year quarter_of_year" }
+	if { $quarters_too_long_p } { set top_vars "year quarter_of_year" }
+        if { $years_too_long_p } { set top_vars "decade" }
+        if { $decades_too_long_p } { set top_vars "decade" }
     }
 
     set top_vars [im_ganttproject_zoom_top_vars -zoom $zoom -top_vars $top_vars]
@@ -2973,6 +2987,7 @@ ad_proc -public im_ganttproject_gantt_component {
 	select
 		h.*,
 		'<a href=${project_url}'||project_id||'>'||project_name||'</a>' as project_name_link,
+		substr(to_char(h.d, 'YYYY'), 1, 3) || '0' as decade,
 		to_char(h.d, 'YYYY') as year,
 		'<!--' || to_char(h.d, 'YYYY') || '-->Q' || to_char(h.d, 'Q') as quarter_of_year,
 		'<!--' || to_char(h.d, 'YYYY-MM') || '-->' || to_char(h.d, 'Mon') as month_of_year,
