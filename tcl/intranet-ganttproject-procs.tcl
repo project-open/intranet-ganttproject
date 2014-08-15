@@ -466,14 +466,22 @@ ad_proc -public im_gp_check_duplicate_task_names {
 
     # create a useful error message
     set error_html ""
+
     foreach wbs [array names task_duplicate_hash] {
 	set parent_wbs $task_duplicate_hash($wbs)
 	set task_name $task_hash($wbs)
-	set parent_name $task_hash($parent_wbs)
 
-     set task_name_quoted [ad_quotehtml $task_name]
+	if {[catch {
+	    set parent_name $task_hash($parent_wbs)
+	} err_msg]} {
+	    global errorInfo
+	    ns_log Error $errorInfo
+	    set parent_name ""
+	}
+	
+	set task_name_quoted [ad_quotehtml $task_name]
 	set parent_name_quoted [ad_quotehtml $parent_name]
-
+	
 	append error_html "<li>
 	       		  <b>[lang::message::lookup "" intranet-ganttproject.Found_duplicate_task "Found a duplicate task '%task_name_quoted%'"]</b>:<br>
 	       		  [lang::message::lookup "" intranet-ganttproject.Found_duplicate_task1 "The parent task '%parent_name_quoted%' has more than one sub-task with the name '%task_name_quoted%'"].<br>
@@ -486,6 +494,8 @@ ad_proc -public im_gp_check_duplicate_task_names {
 	ad_return_complaint 1 "<br><ul>$error_html</ul><br>"
 	ad_script_abort
     }
+
+ad_return_complaint xx ""
     return
 } 
 
