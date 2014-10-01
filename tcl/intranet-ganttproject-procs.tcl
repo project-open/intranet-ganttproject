@@ -315,7 +315,7 @@ ad_proc -public im_ganttproject_component {
 	<table cellspacing=1 cellpadding=1>
 	<tr>
 	<td>
-	  [im_gif "exp-gan" "Upload GanttProject Schedule"]
+	  [im_gif -translate_p 1 "exp-gan" "Upload GanttProject Schedule"]
 	  Upload .gan 
         </td>
 	<td>
