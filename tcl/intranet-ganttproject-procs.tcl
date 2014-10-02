@@ -2136,9 +2136,6 @@ ad_proc -public im_ganttproject_resource_component {
     set rowclass(1) "rowodd"
     set sigma "&Sigma;"
 
-
-#	ad_return_complaint 1 $left_vars
-
     if {0 != $customer_id && "" == $project_id} {
 	set project_id [db_list pids "
 	select	project_id
@@ -2243,6 +2240,7 @@ ad_proc -public im_ganttproject_resource_component {
     }
 
     set top_vars [im_ganttproject_zoom_top_vars -zoom $zoom -top_vars $top_vars]
+    ns_log NOTICE "intranet-ganttproject-procs::im_ganttproject_resource_component: top_vars: $top_vars"
 
     # ------------------------------------------------------------
     # Define Dimensions
