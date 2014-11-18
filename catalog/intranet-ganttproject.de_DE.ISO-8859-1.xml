@@ -59,8 +59,11 @@
   <msg key="Upload_Gantt_OpenProj_File">OpenProj Plan hochladen</msg>
   <msg key="Upload_GanttProject_or_OpenProj_File">GanttProject oder OpenProj Plan hochladen</msg>
   <msg key="Upload_Project_File">Einlesen von MS Project .XML Projektplan oder GanttProject .GAN Projektplan</msg>
-  <msg key="Warnings_portlet_msg">MS Project kann ein nicht gewünschtes Verhalten zeigen, wenn Sie dieses Projekt nach MS Project exportieren.
-
-
+  <msg key="Warnings_portlet_msg">MS Project kann ein nicht gewünschtes Verhalten zeigen, wenn Sie dieses Projekt nach MS Project exportieren.
+
+
+
+
+
 Diese Portlet zeigt Hinweise und Warnungen und bietet Korrekturen für die Problembehandlung.</msg>
 </message_catalog>
