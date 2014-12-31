@@ -495,7 +495,6 @@ ad_proc -public im_gp_check_duplicate_task_names {
 	ad_script_abort
     }
 
-ad_return_complaint xx ""
     return
 } 
 
