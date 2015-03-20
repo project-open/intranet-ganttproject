@@ -206,7 +206,7 @@ ad_proc -public im_ganttproject_ms_project_warning_component {
 } {
     # Only show for GanttProjects
     set project_type_id [db_string project_type "select project_type_id from im_projects where project_id = :project_id" -default ""]
-    if {![im_category_is_a $project_type_id [im_project_type_consulting]]} {
+    if {![im_category_is_a $project_type_id [im_project_type_gantt]]} {
 	return ""
     }
 
@@ -240,8 +240,8 @@ ad_proc -public im_ganttproject_component {
     # 070502 Fraber: Moved into intranet-core/projects/view.tcl
     return ""
 
-    # Is this a "Consulting Project"?
-    set consulting_project_category [parameter::get -package_id [im_package_ganttproject_id] -parameter "GanttProjectType" -default "Consulting Project"]
+    # Is this a "Gantt Project"?
+    set consulting_project_category [parameter::get -package_id [im_package_ganttproject_id] -parameter "GanttProjectType" -default "Gantt Project"]
     if {![im_project_has_type $project_id $consulting_project_category]} {
         return ""
     }
@@ -1637,11 +1637,11 @@ ad_proc -public im_gp_save_tasks_fix_structure {
     if {[llength $sub_tasks] > 0} {
 
 	# The task has children. Make sure it has the object type "im_project"
-	if {[im_project_type_consulting] != $project_type_id} {
-	    if {$debug_p} { ns_write "<li>Setting the project_type_id to 'Consulting project' because there are children\n" }
+	if {[im_project_type_gantt] != $project_type_id} {
+	    if {$debug_p} { ns_write "<li>Setting the project_type_id to 'Gantt Project' because there are children\n" }
 	    db_dml update_import_field "
 		UPDATE	im_projects
-		SET	project_type_id = [im_project_type_consulting]
+		SET	project_type_id = [im_project_type_gantt]
 		WHERE	project_id = :project_id
 	    "
 	}

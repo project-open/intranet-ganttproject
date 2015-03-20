@@ -56,7 +56,7 @@ set project_id [im_project::new \
 		    -project_path	$project_path \
 		    -company_id		$customer_id \
 		    -parent_id		$parent_project_id \
-		    -project_type_id	[im_project_type_consulting] \
+		    -project_type_id	[im_project_type_gantt] \
 		    -project_status_id	[im_project_status_open] \
 		   ]
 
