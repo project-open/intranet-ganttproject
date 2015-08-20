@@ -508,18 +508,26 @@ ad_proc -public im_gp_check_duplicate_task_names2 {
 } {
     if {$debug_p} { ns_log Notice "im_gp_check_duplicate_task_names2: node=$task_node" }
 
-    set task {}
+    set name ""
+    set wbs ""
+    set outlinenumber ""
     foreach taskchild [$task_node childNodes] {
 	set nodeName [string tolower [$taskchild nodeName]]
 	set nodeText [$taskchild text]
 	if {$debug_p} { ns_log Notice "im_gp_check_duplicate_task_names2: name=$nodeName, text=$nodeText" }
 
 	switch $nodeName {
-	    wbs - name {
-		lappend task [list $nodeName "$nodeText"]
-	    }
+	    wbs           { set wbs $nodeText }
+	    outlinenumber { set outlinenumber $nodeText }
+	    name          { set name $nodeText }
 	}
     }
+
+    set task [list]
+    if {"" == $wbs} { set wbs $outlinenumber }
+    lappend task [list wbs $wbs]
+    lappend task [list name $name]
+
     return $task
 }
 
