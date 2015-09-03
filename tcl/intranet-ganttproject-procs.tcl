@@ -2788,6 +2788,11 @@ ad_proc -public im_ganttproject_gantt_component {
     set rowclass(1) "rowodd"
     set sigma "&Sigma;"
 
+    # Only show for GanttProjects
+    if {[im_security_alert_check_integer -location "im_ganttproject_gantt_component" -value $project_id]} { return "" }
+    set project_type_id [util_memoize [list db_string project_type "select project_type_id from im_projects where project_id = $project_id" -default ""]]
+    if {![im_category_is_a $project_type_id [im_project_type_gantt]]} { return "" }
+
     # -----------------------------------------------------------------
     # No project_id specified but customer - get all projects of this customer
     if {0 != $customer_id && "" == $project_id} {
@@ -2863,6 +2868,7 @@ ad_proc -public im_ganttproject_gantt_component {
 	"]
     }
 
+
     if {"" == $end_date} {
 	set end_date [db_string now "select now()::date"]
     } else {
@@ -2883,6 +2889,12 @@ ad_proc -public im_ganttproject_gantt_component {
 			between parent.tree_sortkey
 			and tree_right(parent.tree_sortkey)
 	"]
+    }
+
+    # Limit off the difference to 4 years (5 * 265)
+    set diff_days [db_string diff_days "select :end_date::date - :start_date::date from dual"]
+    if {$diff_days > 1460} {
+	set end_date [db_string diff_end_date "select :start_date::date + 1460 from dual"]
     }
 
     # -----------------------------------------------------------------
