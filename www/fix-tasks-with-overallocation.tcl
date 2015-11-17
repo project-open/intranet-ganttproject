@@ -116,21 +116,21 @@ switch $action {
     ignore_this {
 	db_dml del_ignore "
 		delete from im_gantt_ms_project_warning
-		where	user_id = [ad_get_user_id] and warning_key = :warning_key
+		where	user_id = [ad_conn user_id] and warning_key = :warning_key
 	"
 	db_dml insert_ignore "
 		insert into im_gantt_ms_project_warning (user_id, warning_key, project_id) 
-		values ([ad_get_user_id], :warning_key, :project_id)
+		values ([ad_conn user_id], :warning_key, :project_id)
 	"
     }
     ignore_all {
 	db_dml del_ignore "
 		delete from im_gantt_ms_project_warning
-		where	user_id = [ad_get_user_id] and warning_key = :warning_key
+		where	user_id = [ad_conn user_id] and warning_key = :warning_key
 	"
 	db_dml insert_ignore "
 		insert into im_gantt_ms_project_warning (user_id, warning_key, project_id) 
-		values ([ad_get_user_id], :warning_key,	null)
+		values ([ad_conn user_id], :warning_key,	null)
 	"
     }
 

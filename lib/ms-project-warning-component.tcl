@@ -42,7 +42,7 @@ set ignore_sql "
 	select	gmpw.warning_key,
 		coalesce(gmpw.project_id, 0) as ignore_project_id
 	from	im_gantt_ms_project_warning gmpw
-	where	user_id = [ad_get_user_id] and
+	where	user_id = [ad_conn user_id] and
 		(gmpw.project_id is null or gmpw.project_id = :main_project_id)
 "
 db_foreach ignore_warnings $ignore_sql {

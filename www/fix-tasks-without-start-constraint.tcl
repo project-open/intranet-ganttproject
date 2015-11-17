@@ -59,7 +59,7 @@ switch $action {
     ignore_this {
 	db_dml del_ignore "
 		delete from im_gantt_ms_project_warning
-		where	user_id = [ad_get_user_id] and
+		where	user_id = [ad_conn user_id] and
 			warning_key = :warning_key
 	"
 	db_dml insert_ignore "
@@ -68,7 +68,7 @@ switch $action {
 			warning_key,
 			project_id
 		) values (
-			[ad_get_user_id],
+			[ad_conn user_id],
 			:warning_key,
 			:project_id
 		)
@@ -77,7 +77,7 @@ switch $action {
     ignore_all {
 	db_dml del_ignore "
 		delete from im_gantt_ms_project_warning
-		where	user_id = [ad_get_user_id] and
+		where	user_id = [ad_conn user_id] and
 			warning_key = 'fix-tasks-start-before-main-project'
 	"
 	db_dml insert_ignore "
@@ -86,7 +86,7 @@ switch $action {
 			warning_key,
 			project_id
 		) values (
-			[ad_get_user_id],
+			[ad_conn user_id],
 			'fix-tasks-start-before-main-project',
 			null
 		)

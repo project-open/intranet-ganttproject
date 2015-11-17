@@ -246,7 +246,7 @@ ad_proc -public im_ganttproject_component {
         return ""
     }
 
-    set user_id [ad_get_user_id]
+    set user_id [ad_conn user_id]
     set thumbnail_size [parameter::get -package_id [im_package_ganttproject_id] -parameter "GanttProjectThumbnailSize" -default "360x360"]
     ns_log Notice "im_ganttproject_component: thumbnail_size=$thumbnail_size"
 
