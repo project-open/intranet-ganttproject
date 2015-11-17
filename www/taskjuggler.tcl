@@ -25,7 +25,7 @@ set today [db_string today "select to_char(now(), 'YYYY-MM-DD')"]
 set user_id [ad_maybe_redirect_for_registration]
 
 set hours_per_day 8.0
-set default_currency [ad_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
+set default_currency [im_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
 
 set page_title [lang::message::lookup "" intranet-ganttproject.TaskJuggler_Scheduling "TaskJuggler Scheduling"]
 set context_bar [im_context_bar $page_title]

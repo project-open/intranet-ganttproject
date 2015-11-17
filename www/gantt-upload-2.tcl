@@ -62,7 +62,7 @@ db_1row project_info "
 
 # Get the file from the user.
 # number_of_bytes is the upper-limit
-set max_n_bytes [ad_parameter -package_id [im_package_filestorage_id] MaxNumberOfBytes "" 0]
+set max_n_bytes [im_parameter -package_id [im_package_filestorage_id] MaxNumberOfBytes "" 0]
 set tmp_filename [ns_queryget upload_gan.tmpfile]
 ns_log Notice "upload-2: tmp_filename=$tmp_filename"
 set file_size [file size $tmp_filename]

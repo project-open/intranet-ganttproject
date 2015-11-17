@@ -26,7 +26,7 @@ set user_id [ad_maybe_redirect_for_registration]
 set main_project_id $project_id
 
 
-set default_hourly_cost [ad_parameter -package_id [im_package_cost_id] "DefaultTimesheetHourlyCost" "" 30]
+set default_hourly_cost [im_parameter -package_id [im_package_cost_id] "DefaultTimesheetHourlyCost" "" 30]
 
 # ---------------------------------------------------------------
 # Get information about the project
