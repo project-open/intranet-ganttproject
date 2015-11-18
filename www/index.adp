@@ -17,7 +17,7 @@
 
 
 <form enctype=multipart/form-data method=POST action=gantt-upload-2.tcl>
-<%= [export_form_vars return_url] %>
+<%= [export_vars -form {return_url}] %>
 <table border=0>
   <tr>
     <td class=rowtitle align=center colspan=2>Upload a GanttProject file</td>

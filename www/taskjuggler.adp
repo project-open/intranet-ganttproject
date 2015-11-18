@@ -31,7 +31,7 @@ and import the values into the current project.
 
 
 <form action=taskjuggler-import method=POST>
-<%= [export_form_vars project_id] %>
+<%= [export_vars -form {project_id}] %>
 <input type=submit name=import value="Import Schedule">
 	from TaskJuggler into ]project-open[
 </form>

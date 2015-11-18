@@ -320,7 +320,7 @@ ad_proc -public im_ganttproject_component {
         </td>
 	<td>
 		<form enctype=multipart/form-data method=POST action=/intranet-ganttproject/gantt-upload-2>
-		[export_form_vars return_url project_id]
+		[export_vars -form {return_url project_id}]
 		<table cellspacing=0 cellpadding=0>
 		<tr>
 		<td>

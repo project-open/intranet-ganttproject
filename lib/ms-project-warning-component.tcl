@@ -99,7 +99,7 @@ if {![info exists ignore_hash($warning_key)]} {
 	</ul>
 
 	<form action=/intranet-ganttproject/fix-tasks-start-before-main-project method=GET>
-	[export_form_vars project_id return_url]
+	[export_vars -form {project_id return_url}]
 	<select name=action>
 	<option value=fix>[lang::message::lookup "" intranet-ganttproject.Set_the_start_of_main_project "Set the start of the main project to %new_main_start_date%"]</option>
 	<option value=ignore_this>[lang::message::lookup "" intranet-ganttproject.Ignore_the_issue_for_this_project "Ignore the issue for this project"]</option>
@@ -190,7 +190,7 @@ if {![info exists ignore_hash($warning_key)]} {
 	[lang::message::lookup "" intranet-ganttproject.Tasks_with_empty_start_end_date_msg "
 	The following tasks don't have have a start- or end date defined."]<br>
 	<form action=/intranet-ganttproject/fix-tasks-with-empty-start-end-date>
-	[export_form_vars project_id return_url]
+	[export_vars -form {project_id return_url}]
 	<table border=0>
 	$task_header
 	$task_html
@@ -403,7 +403,7 @@ if {![info exists ignore_hash($warning_key)]} {
 	The following tasks don't have have a constraint to determine their start date.
         MS-Project will schedule these tasks to start together with the main project, unless you explicitely set a start constraint."]</p><br>
 	<form action=/intranet-ganttproject/fix-tasks-without-start-constraint>
-	[export_form_vars project_id return_url]
+	[export_vars -form {project_id return_url}]
 	<table border=0>
 	$task_header
 	$task_html
@@ -576,7 +576,7 @@ if {0 && ![info exists ignore_hash($warning_key)]} {
 	The following tasks have more resources assigned then needed for the given work and duration (start- to end-date).
         MS-Project will shift the end-date of the tasks, unless you reduce the resource assignment here."]<br>
 	<form action=/intranet-ganttproject/fix-tasks-with-overallocation>
-	[export_form_vars project_id return_url]
+	[export_vars -form {project_id return_url}]
 	<table border=0 cellspacing=1 cellpadding=1>
 	$task_header
 	$task_html
@@ -811,7 +811,7 @@ if {![info exists ignore_hash($warning_key)]} {
 		</div>
 	</td><td>
 		<form action=/intranet/projects/view method=GET>
-		[export_form_vars project_id]
+		[export_vars -form {project_id}]
 		<table>
 		<tr>
 		<td>[lang::message::lookup "" intranet-ganttproject.Filter "Filter"]</td>
@@ -825,7 +825,7 @@ if {![info exists ignore_hash($warning_key)]} {
 
 	<div class=ms_project_warning_body>
 	<form action=/intranet-ganttproject/$warning_key method=POST>
-	[export_form_vars project_id return_url]
+	[export_vars -form {project_id return_url}]
 	<table border=0 cellspacing=1 cellpadding=1>
 	$task_header
 	$task_html
