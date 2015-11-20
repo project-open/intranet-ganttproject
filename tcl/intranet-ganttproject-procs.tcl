@@ -2247,7 +2247,7 @@ ad_proc -public im_ganttproject_resource_component {
     }
 
     set top_vars [im_ganttproject_zoom_top_vars -zoom $zoom -top_vars $top_vars]
-    ns_log NOTICE "intranet-ganttproject-procs::im_ganttproject_resource_component: top_vars: $top_vars"
+    ns_log Notice "intranet-ganttproject-procs::im_ganttproject_resource_component: top_vars: $top_vars"
 
     # ------------------------------------------------------------
     # Define Dimensions
