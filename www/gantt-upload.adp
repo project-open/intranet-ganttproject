@@ -2,10 +2,10 @@
 <!-- @author Juanjo Ruiz (juanjoruizx@yahoo.es) -->
 
 <master src="../../intranet-core/www/master">
-<property name="title">@page_title@</property>
-<property name="context">@context_bar@</property>
+<property name="doc(title)">@page_title;literal@</property>
+<property name="context">@context_bar;literal@</property>
 <property name="main_navbar_label">projects</property>
-<property name="sub_navbar">@sub_navbar;noquote@</property>
+<property name="sub_navbar">@sub_navbar;literal@</property>
 
 
 <!-- ------------------------------------------------------------------------------ -->
@@ -18,7 +18,7 @@
 </p>
 <form enctype="multipart/form-data" method="POST" action="gantt-upload-2">
 <%= [export_vars -form {project_id return_url}] %>
-<table border=0>
+<table border="0">
   <tr>
     <td><%= [lang::message::lookup "" intranet-core.File "File"] %></td>
     <td>

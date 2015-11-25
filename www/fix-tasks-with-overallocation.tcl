@@ -84,15 +84,15 @@ switch $action {
 
 		# Calculate the overallocation factor in order to reduce the resource assignments
 		set seconds_in_interval [im_ms_calendar::seconds_in_interval -start_date $start_date -end_date $end_date -calendar [im_ms_calendar::default]]
-		set seconds_work [expr $seconds_in_interval * $percentage / 100.0]
+		set seconds_work [expr {$seconds_in_interval * $percentage / 100.0}]
 
 		switch $uom_id {
-		    320 { set seconds_uom [expr $planned_units * 3600] }
-		    321 { set seconds_uom [expr $planned_units * 3600 * 8.0] }
+		    320 { set seconds_uom [expr {$planned_units * 3600}] }
+		    321 { set seconds_uom [expr {$planned_units * 3600 * 8.0}] }
 		    default { set seconds_uom 0.0 }
 		}
 		set overallocation_factor "undefined"
-		catch { set overallocation_factor [expr round(10.0 * $seconds_work / $seconds_uom) / 10.0] }
+		catch { set overallocation_factor [expr {round(10.0 * $seconds_work / $seconds_uom) / 10.0}] }
 
 		if {"undefined" != $overallocation_factor} {
 		    db_dml reduce_overallocation "

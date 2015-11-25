@@ -226,7 +226,7 @@ ad_proc -public seconds_in_interval {
 	# ----------------------------------------------------------------------------------------
 	# Get the service hours per Day Of Week (1=Su, 2=Mo, 7=Sa)
 	# service_hours are like {09:00 18:00}
-	set dow [expr 1 + (($j + 1) % 7)]
+	set dow [expr {1 + (($j + 1) % 7)}]
 	set cal_day_string $cal_hash($dow)
 	array unset cal_day_hash
 	array set cal_day_hash $cal_day_string
@@ -248,7 +248,7 @@ ad_proc -public seconds_in_interval {
 
 	    # Add the duration of the interval to the working seconds
 	    if {$hour_end_epoch > $hour_start_epoch} {
-		set working_seconds [expr $working_seconds + ($hour_end_epoch - $hour_start_epoch)]
+		set working_seconds [expr {$working_seconds + ($hour_end_epoch - $hour_start_epoch)}]
 	    }
 
 	    ns_log Notice "im_ms_calendar::seconds_in_interval: j=$j, dow=$dow, hour_start_ansi=$hour_start_ansi, hour_end_ansi=$hour_end_ansi, hour_start_epoch=$hour_start_epoch, hour_end_epoch=$hour_end_epoch"

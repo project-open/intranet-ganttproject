@@ -27,7 +27,7 @@ ad_page_contract {
 # Defaults & Security
 # ---------------------------------------------------------------
 
-set user_id [ad_maybe_redirect_for_registration]
+set user_id [auth::require_login]
 im_project_permissions $user_id $project_id view read write admin
 if {!$write} { 
     ad_return_complaint 1 "You don't have permissions to see this page" 
@@ -93,7 +93,7 @@ if {$max_n_bytes && ($file_size > $max_n_bytes) } {
 # -------------------------------------------------------------------
 
 set file_type [fileutil::fileType $tmp_filename]
-if {[lsearch $file_type "ms-office"] >= 0} {
+if {"ms-office" in $file_type} {
     # We've found a binary MS-Office file, probably MPP
 
     ad_return_complaint 1 "
@@ -160,7 +160,7 @@ array set task_hash $task_hash_array
 set task_hash_tasks [list 0]
 foreach task_hash_key [array names task_hash] {
 	set task_hash_value $task_hash($task_hash_key)
-	if [info exists db_task_ids($task_hash_value)] {
+	if {[info exists db_task_ids($task_hash_value)]} {
 	    unset db_task_ids($task_hash_value)
 	}
 	lappend task_hash_tasks $task_hash_value

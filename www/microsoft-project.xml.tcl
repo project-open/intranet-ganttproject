@@ -22,7 +22,7 @@ ad_page_contract {
 # ---------------------------------------------------------------
 
 set today [db_string today "select to_char(now(), 'YYYY-MM-DD')"]
-set user_id [ad_maybe_redirect_for_registration]
+set user_id [auth::require_login]
 set main_project_id $project_id
 
 
@@ -405,16 +405,16 @@ db_foreach project_allocations $project_allocations_sql {
     # The sum of assigned work overrides the task work in MS-Project,
     # so we divide the task work evenly across the assigned resources.
     if { ![info exists planned_units] || "" == $planned_units || "" == [string trim $planned_units] } { set planned_units 0 }
-    set planned_seconds [expr $planned_units * 3600.0]
-    set actual_work_seconds [expr $planned_seconds * $percent_completed / 100.0]
-    set remaining_work_seconds [expr $planned_seconds - $actual_work_seconds]
+    set planned_seconds [expr {$planned_units * 3600.0}]
+    set actual_work_seconds [expr {$planned_seconds * $percent_completed / 100.0}]
+    set remaining_work_seconds [expr {$planned_seconds - $actual_work_seconds}]
 
     if {$total_percentage_assigned == 0} {
 	set work_seconds $planned_seconds
     } else {
-	set work_seconds [expr $planned_seconds * $percentage_assigned / $total_percentage_assigned]
-	set actual_work_seconds [expr $actual_work_seconds * $percentage_assigned / $total_percentage_assigned]
-	set remaining_work_seconds [expr $remaining_work_seconds * $percentage_assigned / $total_percentage_assigned]
+	set work_seconds [expr {$planned_seconds * $percentage_assigned / $total_percentage_assigned}]
+	set actual_work_seconds [expr {$actual_work_seconds * $percentage_assigned / $total_percentage_assigned}]
+	set remaining_work_seconds [expr {$remaining_work_seconds * $percentage_assigned / $total_percentage_assigned}]
     }
     set work_ms [im_gp_seconds_to_ms_project_time $work_seconds]
     set actual_work_ms [im_gp_seconds_to_ms_project_time $actual_work_seconds]
@@ -427,7 +427,7 @@ db_foreach project_allocations $project_allocations_sql {
 		<UID>$assignment_ctr</UID>
 		<TaskUID>$task_id</TaskUID>
 		<ResourceUID>$user_id</ResourceUID>
-		<Units>[expr $percentage_assigned / 100.0]</Units>
+		<Units>[expr {$percentage_assigned / 100.0}]</Units>
 		<PercentWorkComplete>$percent_completed</PercentWorkComplete>
 		<Start>${start_date_date}T00:00:00</Start>
 		<Finish>${end_date_date}T23:00:00</Finish>
@@ -449,7 +449,7 @@ set xml ""
 foreach line [split $xml_org "\n"] {
 
     if {[regexp {^([\ \t]*)\<([a-zA-Z0-9]+)\>\<\/([a-zA-Z0-9]+)\>} $line match blank tag1 tag2]} {
-	if {[string equal $tag1 $tag2]} {
+	if {$tag1 eq $tag2} {
 	    append xml "$blank<$tag1/>\n"     
 	} else {
 	    append xml "$line\n"

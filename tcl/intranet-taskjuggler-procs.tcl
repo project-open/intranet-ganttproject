@@ -196,7 +196,7 @@ ad_proc -public im_taskjuggler_write_task {
 	set allocation_ctr 0
 	db_foreach project_allocations $project_allocations_sql {
 	    incr allocation_ctr
-	    set allocation_hours [expr $percentage * 8.0 / 100.0]
+	    set allocation_hours [expr {$percentage * 8.0 / 100.0}]
 	    if {$allocation_hours < 0.1 } { 
 		# Ignore allocations below 1%.
 		append tj "${indent}\t\# WARNING: Ignoring assignment percentage of $percentage because it is below the TJ resolution\n"

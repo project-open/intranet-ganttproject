@@ -34,7 +34,7 @@ set page_title [lang::message::lookup "" intranet-ganttproject.Import_from_progr
 set context_bar [im_context_bar $page_title]
 
 # get the current users permissions for this project
-set user_id [ad_maybe_redirect_for_registration]
+set user_id [auth::require_login]
 im_project_permissions $user_id $project_id view read write admin
 if {!$write} { 
     ad_return_complaint 1 "You don't have permissions to see this page" 

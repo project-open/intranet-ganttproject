@@ -1,8 +1,8 @@
 <master>
-<property name="title">@page_title@</property>
-<property name="context">@context_bar@</property>
+<property name="doc(title)">@page_title;literal@</property>
+<property name="context">@context_bar;literal@</property>
 <property name="main_navbar_label">projects</property>
-<property name="sub_navbar">@sub_navbar;noquote@</property>
+<property name="sub_navbar">@sub_navbar;literal@</property>
 
 
 <!-- ------------------------------------------------------------------------------ -->
@@ -32,7 +32,7 @@ and import the values into the current project.
 
 <form action=taskjuggler-import method=POST>
 <%= [export_vars -form {project_id}] %>
-<input type=submit name=import value="Import Schedule">
+<input type="submit" name="import" value="Import Schedule">
 	from TaskJuggler into ]project-open[
 </form>
 

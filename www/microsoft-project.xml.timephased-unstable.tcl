@@ -22,7 +22,7 @@ ad_page_contract {
 # ---------------------------------------------------------------
 
 set today [db_string today "select to_char(now(), 'YYYY-MM-DD')"]
-set user_id [ad_maybe_redirect_for_registration]
+set user_id [auth::require_login]
 set main_project_id $project_id
 
 
@@ -409,16 +409,16 @@ db_foreach project_allocations $project_allocations_sql {
     # The sum of assigned work overrides the task work in MS-Project,
     # so we divide the task work evenly across the assigned resources.
     if { ![info exists planned_units] || "" == $planned_units || "" == [string trim $planned_units] } { set planned_units 0 }
-    set planned_seconds [expr $planned_units * 3600.0]
-    set actual_work_seconds [expr $planned_seconds * $percent_completed / 100.0]
-    set remaining_work_seconds [expr $planned_seconds - $actual_work_seconds]
+    set planned_seconds [expr {$planned_units * 3600.0}]
+    set actual_work_seconds [expr {$planned_seconds * $percent_completed / 100.0}]
+    set remaining_work_seconds [expr {$planned_seconds - $actual_work_seconds}]
 
     if {$total_percentage_assigned == 0} {
 	set work_seconds $planned_seconds
     } else {
-	set work_seconds [expr $planned_seconds * $percentage_assigned / $total_percentage_assigned]
-	set actual_work_seconds [expr $actual_work_seconds * $percentage_assigned / $total_percentage_assigned]
-	set remaining_work_seconds [expr $remaining_work_seconds * $percentage_assigned / $total_percentage_assigned]
+	set work_seconds [expr {$planned_seconds * $percentage_assigned / $total_percentage_assigned}]
+	set actual_work_seconds [expr {$actual_work_seconds * $percentage_assigned / $total_percentage_assigned}]
+	set remaining_work_seconds [expr {$remaining_work_seconds * $percentage_assigned / $total_percentage_assigned}]
     }
     set work_ms [im_gp_seconds_to_ms_project_time $work_seconds]
     set actual_work_ms [im_gp_seconds_to_ms_project_time $actual_work_seconds]
@@ -431,7 +431,7 @@ db_foreach project_allocations $project_allocations_sql {
     #    in order to return exactly the same schedule for a task that was specified in MS-Project
     #    (exact "round-trip")
 
-    set units [expr $percentage_assigned / 100.0]
+    set units [expr {$percentage_assigned / 100.0}]
 
     set xml_exists_p [db_0or1row assignment_info "
 	select	ga.*
@@ -442,7 +442,7 @@ db_foreach project_allocations $project_allocations_sql {
     if {$xml_exists_p} {
 
 	set units_diff 100
-	if {$units > 0} { set units_diff [expr 100.0 * abs(($units - $xml_units) / $units)] }
+	if {$units > 0} { set units_diff [expr {100.0 * abs(($units - $xml_units) / $units)}] }
         ns_log Notice "microsoft-project: TimephasedData: rel_id=$rel_id, $task_id != $xml_taskuid, $user_id != $xml_resourceuid, $units != $xml_units, units_diff=$units_diff"
 	if {$task_id != $xml_taskuid} { set xml_exists_p 0 }
 	if {$user_id != $xml_resourceuid} { set xml_exists_p 0 }
@@ -478,7 +478,7 @@ db_foreach project_allocations $project_allocations_sql {
 
 	    ns_log Notice "microsoft-project: TimephasedData: store: xml_element=$xml_element, len(xml_xml) = [string length $xml_xml]"
 	    set var_name "xml_[string tolower $xml_element]"
-	    set var_value [expr "$$var_name"]
+	    set var_value [expr $$var_name]
 	    append xml_xml "<$xml_element>$var_value</$xml_element>\n\t\t\t"
 	}
 	set timephased_xml ""
@@ -529,7 +529,7 @@ set xml ""
 foreach line [split $xml_org "\n"] {
 
     if {[regexp {^([\ \t]*)\<([a-zA-Z0-9]+)\>\<\/([a-zA-Z0-9]+)\>} $line match blank tag1 tag2]} {
-	if {[string equal $tag1 $tag2]} {
+	if {$tag1 eq $tag2} {
 	    append xml "$blank<$tag1/>\n"     
 	} else {
 	    append xml "$line\n"

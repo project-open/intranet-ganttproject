@@ -33,7 +33,7 @@ ad_page_contract {
 # Default & Security
 # ---------------------------------------------------------------
 
-set user_id [ad_maybe_redirect_for_registration]
+set user_id [auth::require_login]
 
 foreach pid $project_id {
     im_project_permissions $user_id $pid view read write admin

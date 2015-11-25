@@ -150,7 +150,7 @@ ad_proc -public im_ganttproject_write_task {
     $project_node setAttribute webLink "$project_view_url$project_id"
     $project_node setAttribute expand "true"
 
-    if {$note != ""} {
+    if {$note ne ""} {
 	set note_node [$doc createElement "notes"]
 	$note_node appendChild [$doc createTextNode $note]
 	$project_node appendChild $note_node
@@ -283,7 +283,7 @@ ad_proc -public im_ganttproject_component {
 	set img "<img src=\"$download_url/$thumb\" title=\"$project_name\" alt=\"$project_name\" border=0>"
     }
 
-    if {"" != $full && $img != ""} {
+    if {"" != $full && $img ne ""} {
 	set img "<a href=\"$download_url/$full\">$img</a>\n"
     }
 
@@ -442,7 +442,7 @@ ad_proc -public im_gp_check_duplicate_task_names {
 	}
 
 	# Skip the first entry without name
-	if {$wbs == "undefined" || $name == "undefined"} { continue }
+	if {$wbs eq "undefined" || $name eq "undefined"} { continue }
 
 	# Remember wbs -> name relationship, so that we later can get the name of the parent
 	set task_hash($wbs) $name
@@ -479,8 +479,8 @@ ad_proc -public im_gp_check_duplicate_task_names {
 	    set parent_name ""
 	}
 	
-	set task_name_quoted [ad_quotehtml $task_name]
-	set parent_name_quoted [ad_quotehtml $parent_name]
+	set task_name_quoted [ns_quotehtml $task_name]
+	set parent_name_quoted [ns_quotehtml $parent_name]
 	
 	append error_html "<li>
 	       		  <b>[lang::message::lookup "" intranet-ganttproject.Found_duplicate_task "Found a duplicate task '%task_name_quoted%'"]</b>:<br>
@@ -545,7 +545,7 @@ ad_proc -public im_gp_save_xml {
     Parses the incoming XML file stores it in ]po[.
 } {
 
-    set user_id [ad_maybe_redirect_for_registration]
+    set user_id [auth::require_login]
 
     # Write audit trail
     im_project_audit -project_id $project_id -action before_update
@@ -717,7 +717,7 @@ ad_proc -public im_gp_save_xml {
 	set calendars_node [$root_node selectNodes -namespace { "project" "http://schemas.microsoft.com/project" } "project:Calendars" ]
     }
     
-    if {$calendars_node != ""} {
+    if {$calendars_node ne ""} {
 	if {$debug_p} {
 	    ns_write "<h2>Saving Calendars</h2>\n"
 	    ns_write "<ul>\n"
@@ -744,7 +744,7 @@ ad_proc -public im_gp_save_xml {
     
     set calendar_uid [db_string cal_uid "select xml_calendaruid from im_gantt_projects where project_id = :project_id" -default ""]
     
-    if {$calendar_uid != ""} {
+    if {$calendar_uid ne ""} {
 	set cal_list ""
 	if {[info exists calendar_hash($calendar_uid)]} {
 	    array unset cal_hash
@@ -769,7 +769,7 @@ ad_proc -public im_gp_save_xml {
 	set resource_node [$root_node selectNodes -namespace { "project" "http://schemas.microsoft.com/project" } "project:Resources" ]
     }
     
-    if {$resource_node != ""} {
+    if {$resource_node ne ""} {
 	if {$debug_p} { ns_write "<h2>Saving Resources</h2>\n" }
 	if {$debug_p} { ns_write "<ul>\n" }
 	
@@ -803,7 +803,7 @@ ad_proc -public im_gp_save_xml {
 	set allocations_node [$root_node selectNodes -namespace { "project" "http://schemas.microsoft.com/project" } "project:Assignments" ]
     }
     
-    if {$allocations_node != ""} {
+    if {$allocations_node ne ""} {
 	if {$debug_p} {
 	    ns_write "<h2>Saving Allocations</h2>\n"
 	    ns_write "<ul>\n"
@@ -901,12 +901,12 @@ ad_proc -public im_gp_ms_project_time_to_seconds {
     set days 0
     if {[regexp {PT([0-9]+)H([0-9]+)M([0-9]+).?([0-9]+)?S} $time all hours minutes seconds]} {
 	# MS-Project duration format
-	return [expr $seconds + 60*$minutes + 60*60*$hours + 60*60*24*$days]
+	return [expr {$seconds + 60*$minutes + 60*60*$hours + 60*60*24*$days}]
     }
 
     if {[regexp {^([0-9]+)$} $time match days]} {
 	# GanttProject days
-	return [expr $time * 60*60*24]
+	return [expr {$time * 60*60*24}]
     }
 
     error "im_gp_ms_project_time_to_seconds: unable to parse data='$time'"
@@ -919,10 +919,10 @@ ad_proc -public im_gp_seconds_to_ms_project_time {
     Converts a number of seconds into a MS-Project time string.
     Example: PT289H48M0S are 289 hours, 48 minutes and 0 seconds
 } {
-    set minutes [expr int($seconds / 60.0)]
-    set seconds [expr int($seconds - ($minutes * 60))]
-    set hours [expr int($minutes / 60.0)]
-    set minutes [expr int($minutes - ($hours * 60))]
+    set minutes [expr {int($seconds / 60.0)}]
+    set seconds [expr {int($seconds - ($minutes * 60))}]
+    set hours [expr {int($minutes / 60.0)}]
+    set minutes [expr {int($minutes - ($hours * 60))}]
     
     return "PT${hours}H${minutes}M${seconds}S"
 }
@@ -948,7 +948,7 @@ ad_proc -public im_gp_save_tasks {
     # of projects and sub-projects
     set tasks_node [$root_node selectNodes /project/tasks]
 
-    if {$tasks_node == ""} {
+    if {$tasks_node eq ""} {
 	# Probably MS-Project format.
 	# MS-Project stores the actual tasks in /project/tasks/task.
 
@@ -1221,12 +1221,12 @@ ad_proc -public im_gp_save_tasks2 {
     # If no percent_completed is given explicitely (GanttProject(?))
     # then calculate based on remaining duration. ToDo: Can we delete this piece?
     if {"" == $percent_completed} {
-	if {$remaining_duration != "" && $duration != "" && 0 != $duration_seconds} {
+	if {$remaining_duration ne "" && $duration ne "" && 0 != $duration_seconds} {
 	    set remaining_seconds [im_gp_ms_project_time_to_seconds $remaining_duration]
 	    if {$duration_seconds == 0} {
 		set percent_completed 100.0
 	    } else {
-		set percent_completed [expr round( 100.0 - (100.0 / $duration_seconds) * $remaining_seconds)]
+		set percent_completed [expr {round( 100.0 - (100.0 / $duration_seconds) * $remaining_seconds)}]
 	    }
 	}
     }
@@ -1279,7 +1279,7 @@ ad_proc -public im_gp_save_tasks2 {
     if {"" == $task_nr} {
 	set nr_prefix "task_"
 	set nr_digits 4
-	set nr_start_idx [expr [string length $nr_prefix] + 1]
+	set nr_start_idx [expr {[string length $nr_prefix] + 1}]
 	set task_id_zeros $uid
 	while {[string length $task_id_zeros] < $nr_digits} { set task_id_zeros "0$task_id_zeros" }
 	set task_nr "$nr_prefix$task_id_zeros"
@@ -1312,7 +1312,7 @@ ad_proc -public im_gp_save_tasks2 {
 	    # Remove leading "0"
 	    set last_task_nr [string trimleft $last_task_nr "0"]
 	    # Add +1 to last nr
-	    set next_task_nr [expr $last_task_nr + 1]
+	    set next_task_nr [expr {$last_task_nr + 1}]
 	    # Add the leading "0" again
 	    while {[string length $next_task_nr] < $nr_digits} { set next_task_nr "0$next_task_nr" }
 	    # Add the prefix
@@ -1484,7 +1484,7 @@ ad_proc -public im_gp_save_tasks2 {
 
 		    # Calculate "difference" from LinkLag and LagFormat.
 		    # ToDo: Take care of LagFormat
-		    set difference_seconds [expr $link_lag * 1.0]
+		    set difference_seconds [expr {$link_lag * 1.0}]
 
 		    im_project_create_dependency \
 			-task_id_one $task_id \
@@ -1781,7 +1781,7 @@ ad_proc -public im_gp_save_allocations {
 			    lappend xml_elements $nodeName
 			}
 			"units" { 
-			    set percentage [expr round(100.0*$nodeText)] 
+			    set percentage [expr {round(100.0*$nodeText)}] 
 			    lappend gantt_assignments_list "xml_units = '$nodeText'"
 			    lappend xml_elements $nodeName
 			}
@@ -1851,7 +1851,7 @@ ad_proc -public im_gp_save_allocations {
 		# What is the role of the resource in the project?
 		# OpenProj contains this information while MS-Project don't.
 		set role_id [im_biz_object_role_full_member]
-		if {[string equal "Default:1" $function]} { 
+		if {"Default:1" eq $function} { 
 		    # We found an OpenProj project manager.
 		    set role_id [im_biz_object_role_project_manager]
 		}
@@ -2026,7 +2026,7 @@ ad_proc -public im_gp_save_resources {
 		    }
 		}
 		
-		if {$resource_id != "" && $resource_id != 0} {
+		if {$resource_id ne "" && $resource_id != 0} {
 
 		    set name [string tolower [string trim $name]]
 		    
@@ -2223,18 +2223,18 @@ ad_proc -public im_ganttproject_resource_component {
 	if {"" == $duration_days} { set duration_days 0 }
 	if {$duration_days < 0} { set duration_days 0 }
 
-	set duration_weeks [expr $duration_days / 7]
-	set duration_months [expr $duration_days / 30]
-	set duration_quarters [expr $duration_days / 91]
-	set duration_years [expr $duration_days / 360]
-	set duration_decades [expr $duration_days / 3600]
+	set duration_weeks [expr {$duration_days / 7}]
+	set duration_months [expr {$duration_days / 30}]
+	set duration_quarters [expr {$duration_days / 91}]
+	set duration_years [expr {$duration_days / 360}]
+	set duration_decades [expr {$duration_days / 3600}]
 
-	set days_too_long [expr $duration_days > $max_col]
-	set weeks_too_long [expr $duration_weeks > $max_col]
-	set months_too_long [expr $duration_months > $max_col]
-	set quarters_too_long [expr $duration_quarters > $max_col]
-        set years_too_long [expr $duration_years > $max_col]
-        set decades_too_long [expr $duration_decades > $max_col]
+	set days_too_long [expr {$duration_days > $max_col}]
+	set weeks_too_long [expr {$duration_weeks > $max_col}]
+	set months_too_long [expr {$duration_months > $max_col}]
+	set quarters_too_long [expr {$duration_quarters > $max_col}]
+        set years_too_long [expr {$duration_years > $max_col}]
+        set decades_too_long [expr {$duration_decades > $max_col}]
 
 	set top_vars "week_of_year day_of_month"
 	if {$days_too_long} { set top_vars "month_of_year week_of_year" }
@@ -2278,7 +2278,7 @@ ad_proc -public im_ganttproject_resource_component {
     if {"" != $user_id && 0 != $user_id} { lappend criteria "u.user_id in ([join $user_id ","])" }
 
     set where_clause [join $criteria " and\n\t\t\t"]
-    if { ![empty_string_p $where_clause] } {
+    if { $where_clause ne "" } {
 	set where_clause " and $where_clause"
     }
     
@@ -2371,7 +2371,7 @@ ad_proc -public im_ganttproject_resource_component {
     set last_item [lindex $top_scale_plain 0]
     foreach scale_item $top_scale_plain {
 	
-	for {set i [expr [llength $last_item]-2]} {$i >= 0} {set i [expr $i-1]} {
+	for {set i [expr {[llength $last_item]-2}]} {$i >= 0} {set i [expr {$i-1}]} {
 	    set last_var [lindex $last_item $i]
 	    set cur_var [lindex $scale_item $i]
 	    if {$last_var != $cur_var} {
@@ -2461,7 +2461,7 @@ ad_proc -public im_ganttproject_resource_component {
 	}
 	append header "<td class=rowtitle colspan=$left_scale_size align=right>$col_l10n</td>\n"
 	
-	for {set col 0} {$col <= [expr [llength $top_scale]-1]} { incr col } {
+	for {set col 0} {$col <= [expr {[llength $top_scale]-1}]} { incr col } {
 	    
 	    set scale_entry [lindex $top_scale $col]
 	    set scale_item [lindex $scale_entry $row]
@@ -2472,7 +2472,7 @@ ad_proc -public im_ganttproject_resource_component {
 	    if {$all_sigmas_p} { continue }
 	    
 	    # Check if the previous item was of the same content
-	    set prev_scale_entry [lindex $top_scale [expr $col-1]]
+	    set prev_scale_entry [lindex $top_scale $col-1]
 	    set prev_scale_item [lindex $prev_scale_entry $row]
 
 	    # Check for the "sigma" sign. We want to display the sigma
@@ -2489,8 +2489,8 @@ ad_proc -public im_ganttproject_resource_component {
 	    # This is the first entry of a new content.
 	    # Look forward to check if we can issue a "colspan" command
 	    set colspan 1
-	    set next_col [expr $col+1]
-	    while {$scale_item == [lindex [lindex $top_scale $next_col] $row]} {
+	    set next_col [expr {$col+1}]
+	    while {$scale_item == [lindex $top_scale $next_col $row]} {
 		incr next_col
 		incr colspan
 	    }
@@ -2534,7 +2534,7 @@ ad_proc -public im_ganttproject_resource_component {
 	    if {[info exists hash($key)]} { set sum $hash($key) }
 	    
 	    if {"" == $percentage} { set percentage 0 }
-	    set sum [expr $sum + $percentage]
+	    set sum [expr {$sum + $percentage}]
 	    set hash($key) $sum
 	    
 	    incr cnt_inner
@@ -2587,7 +2587,7 @@ ad_proc -public im_ganttproject_resource_component {
 	    continue
 	}
 	
-	set class $rowclass([expr $ctr % 2])
+	set class $rowclass([expr {$ctr % 2}])
 	incr ctr
 	
 
@@ -2681,11 +2681,11 @@ ad_proc -public im_ganttproject_resource_component {
 	    }
 
 	    set val_day $val
-	    set val_week [expr round($val/5)]
-	    set val_month [expr round($val/22)]
-	    set val_quarter [expr round($val/66)]
-	    set val_year [expr round($val/260)]
-	    set val_decade [expr round($val/2600)]
+	    set val_week [expr {round($val/5)}]
+	    set val_month [expr {round($val/22)}]
+	    set val_quarter [expr {round($val/66)}]
+	    set val_year [expr {round($val/260)}]
+	    set val_decade [expr {round($val/2600)}]
 
 	    switch $period {
 		"day_of_month" { set val $val_day }
@@ -2732,7 +2732,7 @@ ad_proc -public im_ganttproject_resource_component {
 	set opened [list]
 	set url [export_vars -base $this_url {top_vars {user_name_link_opened $opened}}]
 	append html "<td class=rowtitle><a href=$url>[im_gif "minus_9"]</a></td>\n"
-	append html "<td class=rowtitle colspan=[expr [llength $top_scale]+3]>&nbsp;</td></tr>\n"
+	append html "<td class=rowtitle colspan=[expr {[llength $top_scale]+3}]>&nbsp;</td></tr>\n"
 
     } else {
 
@@ -2741,7 +2741,7 @@ ad_proc -public im_ganttproject_resource_component {
 	set opened [lsort -unique [concat $user_name_link_opened $user_ids]]
 	set url [export_vars -base $this_url {top_vars {user_name_link_opened $opened}}]
 	append html "<td class=rowtitle><a href=$url>[im_gif "plus_9"]</a></td>\n"
-	append html "<td class=rowtitle colspan=[expr [llength $top_scale]+3]>&nbsp;</td></tr>\n"
+	append html "<td class=rowtitle colspan=[expr {[llength $top_scale]+3}]>&nbsp;</td></tr>\n"
 
     }
 
@@ -2906,18 +2906,18 @@ ad_proc -public im_ganttproject_gantt_component {
 	if {"" == $duration_days} { set duration_days 0 }
 	if {$duration_days < 0} { set duration_days 0 }
 
-	set duration_weeks [expr $duration_days / 7]
-	set duration_months [expr $duration_days / 30]
-	set duration_quarters [expr $duration_days / 91]
-	set duration_years [expr $duration_days / 365]
-        set duration_decades [expr $duration_days / 3650]
+	set duration_weeks [expr {$duration_days / 7}]
+	set duration_months [expr {$duration_days / 30}]
+	set duration_quarters [expr {$duration_days / 91}]
+	set duration_years [expr {$duration_days / 365}]
+        set duration_decades [expr {$duration_days / 3650}]
 
-	set days_too_long_p [expr $duration_days > $max_col]
-	set weeks_too_long_p [expr $duration_weeks > $max_col]
-	set months_too_long_p [expr $duration_months > $max_col]
-	set quarters_too_long_p [expr $duration_quarters > $max_col]
-        set years_too_long_p [expr $duration_years > $max_col]
-        set decades_too_long_p [expr $duration_decades > $max_col]
+	set days_too_long_p [expr {$duration_days > $max_col}]
+	set weeks_too_long_p [expr {$duration_weeks > $max_col}]
+	set months_too_long_p [expr {$duration_months > $max_col}]
+	set quarters_too_long_p [expr {$duration_quarters > $max_col}]
+        set years_too_long_p [expr {$duration_years > $max_col}]
+        set decades_too_long_p [expr {$duration_decades > $max_col}]
 
 	set top_vars "week_of_year day_of_month"
 	if { $days_too_long_p } { set top_vars "month_of_year week_of_year" }
@@ -2972,7 +2972,7 @@ ad_proc -public im_ganttproject_gantt_component {
     }
     
     set where_clause [join $criteria " and\n\t\t\t"]
-    if { ![empty_string_p $where_clause] } {
+    if { $where_clause ne "" } {
 	set where_clause " and $where_clause"
     }
     
@@ -3067,9 +3067,9 @@ ad_proc -public im_ganttproject_gantt_component {
 	    set zoom_out "<a href=[export_vars -base $this_url {top_vars opened_projects {zoom "out"}}]>[im_gif "magifier_zoom_out"]</a>\n" 
 	    set col_l10n "$zoom_in $zoom_out $col_l10n\n" 
 	}
-	append header "<td class=$header_class colspan=[expr $max_level+2] align=right>$col_l10n</td>\n"
+	append header "<td class=$header_class colspan=[expr {$max_level+2}] align=right>$col_l10n</td>\n"
 	
-	for {set col 0} {$col <= [expr [llength $top_scale]-1]} { incr col } {
+	for {set col 0} {$col <= [expr {[llength $top_scale]-1}]} { incr col } {
 	    
 	    set scale_entry [lindex $top_scale $col]
 	    set scale_item [lindex $scale_entry $row]
@@ -3081,7 +3081,7 @@ ad_proc -public im_ganttproject_gantt_component {
 
 	    
 	    # Check if the previous item was of the same content
-	    set prev_scale_entry [lindex $top_scale [expr $col-1]]
+	    set prev_scale_entry [lindex $top_scale $col-1]
 	    set prev_scale_item [lindex $prev_scale_entry $row]
 
 	    # Check for the "sigma" sign. We want to display the sigma
@@ -3098,8 +3098,8 @@ ad_proc -public im_ganttproject_gantt_component {
 	    # This is the first entry of a new content.
 	    # Look forward to check if we can issue a "colspan" command
 	    set colspan 1
-	    set next_col [expr $col+1]
-	    while {$scale_item == [lindex [lindex $top_scale $next_col] $row]} {
+	    set next_col [expr {$col+1}]
+	    while {$scale_item == [lindex $top_scale $next_col $row]} {
 		incr next_col
 		incr colspan
 	    }
@@ -3141,7 +3141,7 @@ ad_proc -public im_ganttproject_gantt_component {
 	    if {[info exists hash($key)]} { set sum $hash($key) }
 	    
 	    if {"" == $days} { set days 0 }
-	    set sum [expr $sum + $days]
+	    set sum [expr {$sum + $days}]
 	    set hash($key) $sum
 	    
 	    incr cnt_inner
@@ -3182,7 +3182,7 @@ ad_proc -public im_ganttproject_gantt_component {
 	if {![info exists child_count_hash($project_id)]} { set child_count_hash($project_id) 0 }
 	if {![info exists child_count_hash($parent_id)]} { set child_count_hash($parent_id) 0 }
 	set child_count $child_count_hash($parent_id)
-	set child_count_hash($parent_id) [expr $child_count+1]
+	set child_count_hash($parent_id) [expr {$child_count+1}]
 	
 	# Create a list of projects for each level for fast opening
 	set level_list [list]
@@ -3231,7 +3231,7 @@ ad_proc -public im_ganttproject_gantt_component {
 	lappend project_path $project_id
 
 	set org_project_id $project_id
-	set class $rowclass([expr $ctr % 2])
+	set class $rowclass([expr {$ctr % 2}])
 	incr ctr
 	
 
@@ -3242,10 +3242,10 @@ ad_proc -public im_ganttproject_gantt_component {
 	foreach project_id $project_path { 
 
 	    set project_name $project_name_hash($project_id)
-	    set left_entry_ctr_pp [expr $left_entry_ctr+1]
-	    set left_entry_ctr_mm [expr $left_entry_ctr-1]
+	    set left_entry_ctr_pp [expr {$left_entry_ctr+1}]
+	    set left_entry_ctr_mm [expr {$left_entry_ctr-1}]
 
-	    set open_p [expr [lsearch $opened_projects $project_id] >= 0]
+	    set open_p [expr {[lsearch $opened_projects $project_id] >= 0}]
 	    if {$open_p} {
 		set opened $opened_projects
 		set project_id_pos [lsearch $opened $project_id]
@@ -3270,7 +3270,7 @@ ad_proc -public im_ganttproject_gantt_component {
 	    
 	    set col_span($left_entry_ctr_mm) 1
 	    set col_span($left_entry_ctr) 1
-	    set col_span($left_entry_ctr_pp) [expr $max_level+1-$left_entry_ctr]
+	    set col_span($left_entry_ctr_pp) [expr {$max_level+1-$left_entry_ctr}]
 
 	    incr left_entry_ctr
 	}
@@ -3295,7 +3295,7 @@ ad_proc -public im_ganttproject_gantt_component {
 
 	    # --------------------------------------------------
 	    # Get the "next_days" (=days of the next table column)
-	    set top_entry_next [lindex $top_scale [expr $top_entry_idx+1]]
+	    set top_entry_next [lindex $top_scale $top_entry_idx+1]
 	    for {set i 0} {$i < [llength $top_vars]} {incr i} {
 		set var_name [lindex $top_vars $i]
 		set var_value [lindex $top_entry_next $i]
@@ -3424,7 +3424,7 @@ ad_proc -public im_ganttproject_gantt_component {
 
 
     }
-    append html "<td class=$header_class colspan=[expr [llength $top_scale]+2]>&nbsp;</td></tr>\n"
+    append html "<td class=$header_class colspan=[expr {[llength $top_scale]+2}]>&nbsp;</td></tr>\n"
 
     return "<table>\n$html\n</table>\n"
 }
@@ -3438,20 +3438,20 @@ ad_proc -public im_ganttproject_zoom_top_vars {
 } {
     if {"in" == $zoom} {
 	# check for most detailed variable in top_vars
-	if {[lsearch $top_vars "day_of_month"] >= 0} { return {week_of_year day_of_month} }
-	if {[lsearch $top_vars "week_of_year"] >= 0} { return {week_of_year day_of_month} }
-	if {[lsearch $top_vars "month_of_year"] >= 0} { return {month_of_year week_of_year} }
-	if {[lsearch $top_vars "quarter_of_year"] >= 0} { return {quarter_of_year month_of_year} }
-	if {[lsearch $top_vars "year"] >= 0} { return {year quarter_of_year} }
+	if {"day_of_month" in $top_vars} { return {week_of_year day_of_month} }
+	if {"week_of_year" in $top_vars} { return {week_of_year day_of_month} }
+	if {"month_of_year" in $top_vars} { return {month_of_year week_of_year} }
+	if {"quarter_of_year" in $top_vars} { return {quarter_of_year month_of_year} }
+	if {"year" in $top_vars} { return {year quarter_of_year} }
     }
 
     if {"out" == $zoom} {
 	# check for most coarse-grain variable in top_vars
-	if {[lsearch $top_vars "year"] >= 0} { return {year quarter_of_year} }
-	if {[lsearch $top_vars "quarter_of_year"] >= 0} { return {year quarter_of_year} }
-	if {[lsearch $top_vars "month_of_year"] >= 0} { return {quarter_of_year month_of_year} }
-	if {[lsearch $top_vars "week_of_year"] >= 0} { return {month_of_year week_of_year} }
-	if {[lsearch $top_vars "day_of_month"] >= 0} { return {week_of_year day_of_month} }
+	if {"year" in $top_vars} { return {year quarter_of_year} }
+	if {"quarter_of_year" in $top_vars} { return {year quarter_of_year} }
+	if {"month_of_year" in $top_vars} { return {quarter_of_year month_of_year} }
+	if {"week_of_year" in $top_vars} { return {month_of_year week_of_year} }
+	if {"day_of_month" in $top_vars} { return {week_of_year day_of_month} }
     }
 
     return $top_vars
@@ -3512,7 +3512,7 @@ ad_proc -public im_ganttproject_task_info_component {
 	    percentage {
 		label "[_ intranet-core.Percentage]"
 		link_url_eval {
-		    [ return "/intranet-timesheet2-tasks/edit-resource?[export_vars -url { return_url rel_id }]" ]
+		    [ return [export_vars -base /intranet-timesheet2-tasks/edit-resource { return_url rel_id }] ]
 		}
 	    }
 	} \
@@ -3754,14 +3754,14 @@ ad_proc im_ganttproject_skill_profile_assignment_select_helper {
 		# Take out the experience score for high/medium/low/unconfirmed
 		im_security_alert_check_integer -location "im_ganttproject_skill_profile_assignment_select_helper: person_confirmed_experience_id" -value $person_confirmed_experience_id
 		set confirmed_score [util_memoize [list db_string experience_score "select coalesce(aux_int1, 1) from im_categories where category_id = $person_confirmed_experience_id" -default 1]]
-		set score [expr $score + $confirmed_score]
+		set score [expr {$score + $confirmed_score}]
 	    }
 	}
 
 	# Add department match to score
 	set cost_center_code_len [string length $profile_department_code]
 	if {$profile_department_code == [string range $person_department_code 0 $cost_center_code_len]} {
-	    set score [expr $score + $department_score]
+	    set score [expr {$score + $department_score}]
 	}
 	
 	lappend user_score_list [list $person_id $score $availability]
@@ -3792,7 +3792,7 @@ ad_proc im_ganttproject_skill_profile_select_score {
 } {
     Returns a score values that is greater if a user's skills match the skills required by the skill profile.
 } {
-    set score [expr rand() * 100.0]
+    set score [expr {rand() * 100.0}]
 
     set score 0.0
     foreach tuple $skill_profile_skills {
@@ -3811,8 +3811,8 @@ ad_proc im_ganttproject_skill_profile_select_score {
 	    # Take out the experience score of the person from the last digit of the category_id.
 	    # That's a reasonable approx, but not very clean...
 	    # Unconfirmed=0, Low=1, Medium=2, High=3
-	    set confirmed_score [expr $person_confirmed_experience_id % 10]
-	    set score [expr $score + $confirmed_score]
+	    set confirmed_score [expr {$person_confirmed_experience_id % 10}]
+	    set score [expr {$score + $confirmed_score}]
 	}
     }
 

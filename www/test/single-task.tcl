@@ -26,7 +26,7 @@ ad_page_contract {
 # Defaults & Security
 # ---------------------------------------------------------------
 
-set user_id [ad_maybe_redirect_for_registration]
+set user_id [auth::require_login]
 set user_is_admin_p [im_is_user_site_wide_or_intranet_admin $user_id]
 if {!$user_is_admin_p} {
     ad_return_complaint 1 "This page is only accessible for administrators"
@@ -120,7 +120,7 @@ if {[set resource_node [$root_node selectNodes /project/resources]] == ""} {
     set resource_node [$root_node selectNodes -namespace { "project" "http://schemas.microsoft.com/project" } "project:Resources" ]
 }
 
-if {$resource_node != ""} {
+if {$resource_node ne ""} {
     set resource_hash_array [im_gp_save_resources -debug_p $debug_p $resource_node]
     array set resource_hash $resource_hash_array
 }
@@ -143,7 +143,7 @@ if {[set allocations_node [$root_node selectNodes /project/allocations]] == ""} 
     set allocations_node [$root_node selectNodes -namespace { "project" "http://schemas.microsoft.com/project" } "project:Assignments" ]
 }
 
-if {$allocations_node != ""} {
+if {$allocations_node ne ""} {
     im_gp_save_allocations \
 	-debug_p $debug_p \
 	$allocations_node \

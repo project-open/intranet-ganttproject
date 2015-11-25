@@ -192,7 +192,7 @@ ad_proc -public im_ms_project_write_task {
     if {"" == $duration_hours} { 
 	set duration_hours $default_duration
     }
-    if {"" == $duration_hours || [string equal $start_date $end_date] || $duration_hours < 0} { 
+    if {"" == $duration_hours || $start_date eq $end_date || $duration_hours < 0} { 
 	set duration_hours 0 
     }
 
@@ -282,21 +282,21 @@ ad_proc -public im_ms_project_write_task {
 	    Duration - ManualDuration {
 		# Check if we've got a duration defined in the xml_elements.
 		# Otherwise (export without import...) generate a duration.
-		set seconds [expr $duration_hours * 3600.0]
+		set seconds [expr {$duration_hours * 3600.0}]
 		set value [im_gp_seconds_to_ms_project_time $seconds]
 	    }
 	    ManualDuration {
 		# Check if we've got a duration defined in the xml_elements.
 		# Otherwise (export without import...) generate a duration.
-		set seconds [expr $duration_hours * 3600.0]
+		set seconds [expr {$duration_hours * 3600.0}]
 		set value [im_gp_seconds_to_ms_project_time $seconds]
 	    }
 	    
 	    DurationFormat		{ set value 7 }
 	    EffortDriven		{ if {"t" == $effort_driven_p} { set value 1 } else { set value 0 } }
 	    RemainingDuration {
-		set remaining_duration_hours [expr round($duration_hours * (100.0 - $percent_completed) / 100.0)]
-		set seconds [expr $remaining_duration_hours * 3600.0]
+		set remaining_duration_hours [expr {round($duration_hours * (100.0 - $percent_completed) / 100.0)}]
+		set seconds [expr {$remaining_duration_hours * 3600.0}]
 		set value [im_gp_seconds_to_ms_project_time $seconds]
 	    }
 	    Milestone			{ if {"t" == $milestone_p} { set value 1 } else { set value 0 } }
@@ -358,7 +358,7 @@ ad_proc -public im_ms_project_write_task {
 		    set planned_units 0 
 		    set value ""
 		} else {
-		    set seconds [expr $planned_units * 3600.0]
+		    set seconds [expr {$planned_units * 3600.0}]
 		    set value [im_gp_seconds_to_ms_project_time $seconds]
 		}
 	    }
@@ -493,7 +493,7 @@ ad_proc -public im_ms_project_seconds_in_timephased {
 	    set value_seconds [im_gp_ms_project_time_to_seconds $timephase_value]
 	    if {[string is integer $value_seconds]} { 
 		if {"" == $seconds} { set seconds 0.0 }
-		set seconds [expr $seconds + $value_seconds]
+		set seconds [expr {$seconds + $value_seconds}]
 	    }
 	}
     }

@@ -80,7 +80,7 @@ if {![info exists ignore_hash($warning_key)]} {
     set task_list_len [llength $task_list]
     if {$task_list_len > 3} {
 	set task_list [lrange $task_list 0 2]
-	lappend task_list "... ([expr $task_list_len - 3] [lang::message::lookup "" intranet-ganttproject.more_tasks "more tasks"])"
+	lappend task_list "... ([expr {$task_list_len - 3}] [lang::message::lookup "" intranet-ganttproject.more_tasks "more tasks"])"
     }
     
     set project_id $main_project_id
@@ -164,7 +164,7 @@ if {![info exists ignore_hash($warning_key)]} {
 	append task_html "</tr>\n"   
     }
     
-    if {[string length $task_html] > 0} {
+    if {$task_html ne ""} {
 	set task_header "<tr class=rowtitle>\n"
 	append task_header "<td class=rowtitle><input type=checkbox name=_dummy onclick=acs_ListCheckAll('task_with_empty_start_end_date',this.checked) checked></td>\n"
 	append task_header "<td class=rowtitle>[lang::message::lookup "" intranet-ganttproject.Task "Task"]</td>\n"
@@ -372,11 +372,11 @@ if {![info exists ignore_hash($warning_key)]} {
     set task_list_len [llength $task_list]
     if {$task_list_len > 3} {
 	set task_list [lrange $task_list 0 2]
-	lappend task_list "... ([expr $task_list_len - 3] more tasks)"
+	lappend task_list "... ([expr {$task_list_len - 3}] more tasks)"
     }
     
     
-    if {[string length $task_html] > 0} {
+    if {$task_html ne ""} {
 	set task_header "<tr class=rowtitle>\n"
 	append task_header "<td class=rowtitle><input type=checkbox name=_dummy onclick=acs_ListCheckAll('task_without_start_constraint',this.checked) checked></td>\n"
 	append task_header "<td class=rowtitle>[lang::message::lookup "" intranet-ganttproject.Task "Task"]</td>\n"
@@ -490,10 +490,10 @@ if {0 && ![info exists ignore_hash($warning_key)]} {
 
 	if {"" == $project_calendar} { set project_calendar [im_ms_calendar::default] }
 	set seconds_in_interval [im_ms_calendar::seconds_in_interval -start_date $start_date -end_date $end_date -calendar $project_calendar]
-	set seconds_work [expr $seconds_in_interval * $percentage / 100.0]
+	set seconds_work [expr {$seconds_in_interval * $percentage / 100.0}]
 	switch $uom_id {
-	    320 { set seconds_uom [expr $planned_units * 3600] }
-	    321 { set seconds_uom [expr $planned_units * 3600 * 8.0] }
+	    320 { set seconds_uom [expr {$planned_units * 3600}] }
+	    321 { set seconds_uom [expr {$planned_units * 3600 * 8.0}] }
 	    default { set seconds_uom 0.0 }
 	}
 
@@ -503,12 +503,12 @@ if {0 && ![info exists ignore_hash($warning_key)]} {
 	if {"" != $seconds_in_timephased} { set seconds_work $seconds_in_timephased }
 
 	set overallocation_factor "undefined"
-	catch { set overallocation_factor [expr $seconds_work / $seconds_uom] }
+	catch { set overallocation_factor [expr {$seconds_work / $seconds_uom}] }
 
 	if {"undefined" != $overallocation_factor} {
 	    # Accept max. 10% overassignment, because of small rounding
 	    # errors between %assigned and actual time spent by the resource
-	    if {[expr abs($overallocation_factor - 1.0)] > 0.10} {
+	    if {[expr {abs($overallocation_factor - 1.0)}] > 0.10} {
 
 
 	ns_log Notice "ms-project-warning-component: fix-tasks-with-overallocation: seconds_work=$seconds_work, seconds_uom=$seconds_uom, seconds_in_timephased=$seconds_in_timephased, task_name=$task_name"
@@ -519,10 +519,10 @@ if {0 && ![info exists ignore_hash($warning_key)]} {
 		append task_html "<td align=left><a href=[export_vars -base "/intranet/projects/view" {{project_id $task_id}}]>$task_name</a></td>\n"
 		append task_html "<td>$start_date_pretty</td>\n"
 		append task_html "<td>$end_date_pretty</td>\n"
-		append task_html "<td align=right>[expr round(10.0 * $seconds_uom / 3600.0) / 10.0]</td>\n"
-		append task_html "<td align=right>[expr round(10.0 * $seconds_work / 3600.0) / 10.0]</td>\n"
-		append task_html "<td align=right>[expr round(10.0 * $percentage) / 10.0]</a></td>\n"
-		append task_html "<td align=right>[expr round(1000.0 * $overallocation_factor) / 1000.0]</td>\n"
+		append task_html "<td align=right>[expr {round(10.0 * $seconds_uom / 3600.0) / 10.0}]</td>\n"
+		append task_html "<td align=right>[expr {round(10.0 * $seconds_work / 3600.0) / 10.0}]</td>\n"
+		append task_html "<td align=right>[expr {round(10.0 * $percentage) / 10.0}]</a></td>\n"
+		append task_html "<td align=right>[expr {round(1000.0 * $overallocation_factor) / 1000.0}]</td>\n"
 		append task_html "</tr>\n"
 		incr task_ctr
 	    }
@@ -539,11 +539,11 @@ if {0 && ![info exists ignore_hash($warning_key)]} {
     set task_list_len [llength $task_list]
     if {$task_list_len > 3} {
 	set task_list [lrange $task_list 0 2]
-	lappend task_list "... ([expr $task_list_len - 3] more tasks)"
+	lappend task_list "... ([expr {$task_list_len - 3}] more tasks)"
     }
     
     
-    if {[string length $task_html] > 0} {
+    if {$task_html ne ""} {
 	set task_header "<tr class=rowtitle>\n"
 	append task_header "<td class=rowtitle align=center><input type=checkbox name=_dummy onclick=acs_ListCheckAll('task_with_overallocation',this.checked) checked></td>\n"
 	append task_header "<td class=rowtitle align=center>[lang::message::lookup "" intranet-ganttproject.Task "Task"]</td>\n"
@@ -692,7 +692,7 @@ if {![info exists ignore_hash($warning_key)]} {
 	foreach tuple $assigned_skill_profiles {
 	    set skill_profile_id [lindex $tuple 0]
 	    set percent [lindex $tuple 2]
-	    if {"" != $percent} { set percent [expr $percent+0.0] }
+	    if {"" != $percent} { set percent [expr {$percent+0.0}] }
 	    set string [im_name_from_user_id $skill_profile_id]
 	    if {"" != $percent} { append string ":$percent%" }
 	    lappend skill_profiles_list $string
@@ -703,7 +703,7 @@ if {![info exists ignore_hash($warning_key)]} {
 	foreach tuple $assigned_persons {
 	    set skill_profile_id [lindex $tuple 0]
 	    set percent [lindex $tuple 2]
-	    set percent [expr $percent+0.0]
+	    set percent [expr {$percent+0.0}]
 	    set string [im_name_from_user_id $skill_profile_id]
 	    if {"" != $percent} { append string ":$percent%" }
 	    lappend persons_list $string
@@ -715,7 +715,7 @@ if {![info exists ignore_hash($warning_key)]} {
 	    set rel_id [lindex $tuple 3]
 
 	    # Required percent assignment in order to eqal out person vs. skill profiles
-	    set percent [expr $percentage_skill_profiles - $percentage_non_skill_profiles]
+	    set percent [expr {$percentage_skill_profiles - $percentage_non_skill_profiles}]
 
 	    append task_html "<tr>\n"
 	    append task_html "<td><input type=checkbox name=checked.$rel_id id=task_with_overallocation.$rel_id checked></td>\n"
@@ -743,11 +743,11 @@ if {![info exists ignore_hash($warning_key)]} {
     set task_list_len [llength $task_list]
     if {$task_list_len > 3} {
 	set task_list [lrange $task_list 0 2]
-	lappend task_list "... ([expr $task_list_len - 3] more tasks)"
+	lappend task_list "... ([expr {$task_list_len - 3}] more tasks)"
     }
     
     
-    if {[string length $task_html] > 0} {
+    if {$task_html ne ""} {
 	set task_header "<tr class=rowtitle>\n"
 	append task_header "<td class=rowtitle align=center><input type=checkbox name=_dummy onclick=acs_ListCheckAll('task_with_overallocation',this.checked) checked></td>\n"
 	append task_header "<td class=rowtitle align=center>[lang::message::lookup "" intranet-ganttproject.Task "Task Name"]</td>\n"

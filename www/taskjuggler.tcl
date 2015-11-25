@@ -22,7 +22,7 @@ ad_page_contract {
 # ---------------------------------------------------------------
 
 set today [db_string today "select to_char(now(), 'YYYY-MM-DD')"]
-set user_id [ad_maybe_redirect_for_registration]
+set user_id [auth::require_login]
 
 set hours_per_day 8.0
 set default_currency [im_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
@@ -151,7 +151,7 @@ db_foreach project_resources $project_resources_sql {
     set user_tj "\tresource r$person_id \"$user_name\" {\n"
 
     if {"" != $hourly_cost} {
-	append user_tj "\t\trate [expr $hourly_cost * $hours_per_day]\n"
+	append user_tj "\t\trate [expr {$hourly_cost * $hours_per_day}]\n"
     }
 
     # ---------------------------------------------------------------

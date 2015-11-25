@@ -26,7 +26,7 @@ ad_page_contract {
 
 set today [db_string today "select to_char(now(), 'YYYY-MM-DD')"]
 if {0 == $user_id} {
-    set user_id [ad_maybe_redirect_for_registration]
+    set user_id [auth::require_login]
 }
 
 # get the current users permissions for this project

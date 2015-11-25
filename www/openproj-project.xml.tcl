@@ -26,7 +26,7 @@ ad_page_contract {
 
 set today [db_string today "select to_char(now(), 'YYYY-MM-DD')"]
 if {0 == $user_id} {
-    set user_id [ad_maybe_redirect_for_registration]
+    set user_id [auth::require_login]
 }
 
 # ---------------------------------------------------------------
@@ -383,7 +383,7 @@ ad_proc -public im_openproj_write_task {
     if {"" == $duration} { 
 	set duration $default_duration 
     } 
-    if {"" == $duration || [string equal $start_date $end_date] } { 
+    if {"" == $duration || $start_date eq $end_date } { 
 	set duration 0 
     }
 
