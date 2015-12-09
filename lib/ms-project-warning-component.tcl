@@ -692,7 +692,7 @@ if {![info exists ignore_hash($warning_key)]} {
 	foreach tuple $assigned_skill_profiles {
 	    set skill_profile_id [lindex $tuple 0]
 	    set percent [lindex $tuple 2]
-	    if {"" != $percent} { set percent [expr {$percent+0.0}] }
+	    if {"" != $percent} { set percent [expr $percent+0.0] }
 	    set string [im_name_from_user_id $skill_profile_id]
 	    if {"" != $percent} { append string ":$percent%" }
 	    lappend skill_profiles_list $string
@@ -703,7 +703,7 @@ if {![info exists ignore_hash($warning_key)]} {
 	foreach tuple $assigned_persons {
 	    set skill_profile_id [lindex $tuple 0]
 	    set percent [lindex $tuple 2]
-	    set percent [expr {$percent+0.0}]
+	    set percent [expr $percent+0.0]
 	    set string [im_name_from_user_id $skill_profile_id]
 	    if {"" != $percent} { append string ":$percent%" }
 	    lappend persons_list $string
