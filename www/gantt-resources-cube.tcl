@@ -128,26 +128,26 @@ if {"" == $html} {
 set left_navbar_html "
 	<div class='filter-block'>
         	<div class='filter-title'>
-	           #intranet-core.Filter_Projects#
+	           [_ intranet-core.Filter_Projects]
         	</div>
 
         <form action='/intranet-ganttproject/gantt-resources-cube' method=GET>
         <table border=0 cellspacing=1 cellpadding=1>
         <tr>
-          <td class=form-label>#intranet-core.Start_Date#</td>
+          <td class=form-label>[_ intranet-core.Start_Date]</td>
           <td class=form-widget>
             <input type=textfield name=start_date value='$start_date'>
           </td>
         </tr>
         <tr>
-          <td class=form-label>#intranet-core.End_Date#</td>
+          <td class=form-label>[_ intranet-core.End_Date]</td>
           <td class=form-widget>
             <input type=textfield name=end_date value='$end_date'>
           </td>
         </tr>
         <tr>
           <td class=form-label></td>
-          <td class=form-widget><input type=submit value='#intranet-core.Submit#'></td>
+          <td class=form-widget><input type=submit value='[_ intranet-core.Submit]'></td>
         </tr>
         </table>
         </form>
