@@ -144,8 +144,7 @@ foreach element $xml_elements {
         MoveCompletedEndsForward - \
         NewTasksEstimated - \
         ProjectExternallyEdited - \
-        StartDate - \
-	Xxx {
+        StartDate {
 	    # Don't write out these fields by default
 	    set append_p 0
 	}

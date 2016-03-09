@@ -414,8 +414,7 @@ ad_proc -public im_ms_project_write_task {
 		Summary - \
 		Task - \
 		TotalSlack - \
-		WorkVariance - \
-		Xxxx {
+		WorkVariance {
 		    # Skip these ones
 		    continue 
 		}

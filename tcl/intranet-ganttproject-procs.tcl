@@ -234,8 +234,8 @@ ad_proc -public im_ganttproject_component {
     -forum_type
 } {
     Returns a tumbnail of the project and some links for management.
-    Check for "project.thumb.xxx" and a "project.full.xxx"
-    files with xxx in (gif, png, jpg)
+    Check for "project.thumb.*" and a "project.full.*" files with 
+    (gif, png, jpg) extension
 } {
     # 070502 Fraber: Moved into intranet-core/projects/view.tcl
     return ""
