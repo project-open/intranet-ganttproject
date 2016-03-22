@@ -988,13 +988,15 @@ ad_proc -public im_gp_save_tasks {
 		}
 		"startdate" {
 		    ns_log Notice "im_gp_save_tasks: StartDate: Update im_projects.start_date"
-		    db_dml project_start_date "
-			UPDATE im_projects SET start_date = :nodeText WHERE project_id = :main_project_id"
+		    set end_before_start_p [db_string edup "select (end_date < :nodeText) from im_projects where project_id = :main_project_id"]
+		    if {"t" eq $end_before_start_p} { db_dml project_start_date "UPDATE im_projects SET end_date = :nodeText WHERE project_id = :main_project_id" }
+		    db_dml project_start_date "UPDATE im_projects SET start_date = :nodeText WHERE project_id = :main_project_id"
 		}
 		"finishdate" {		    
 		    ns_log Notice "im_gp_save_tasks: StartDate: Update im_projects.end_date"
-		    db_dml project_end_date "
-			UPDATE im_projects SET end_date = :nodeText WHERE project_id = :main_project_id"
+		    set start_after_end_p [db_string edup "select (start_date > :nodeText) from im_projects where project_id = :main_project_id"]
+		    if {"t" eq $start_after_end_p} { db_dml project_start_date "UPDATE im_projects SET start_date = :nodeText WHERE project_id = :main_project_id" }
+		    db_dml project_end_date "UPDATE im_projects SET end_date = :nodeText WHERE project_id = :main_project_id"
 		}
 		default {
 		    im_ganttproject_add_import "im_gantt_project" $nodeName
@@ -3466,9 +3468,16 @@ ad_proc -public im_ganttproject_add_import {
     # Check if column exists
     set column_exists_p [im_column_exists ${object_type}s $column_name]
     if {$column_exists_p} { return }
-    set field_present [util_memoize [list attribute::exists_p $object_type $column_name]]
+
+    # Check if the attribute metadata exist
+    set field_present [attribute::exists_p $object_type $column_name]
     if {!$field_present} {
-	attribute::add  -min_n_values 0 -max_n_values 1 "$object_type" "string" $column_name $column_name
+	if {[catch {
+	    # Hide any error message, because it is usually not very important
+	    attribute::add  -min_n_values 0 -max_n_values 1 "$object_type" "string" $column_name $column_name
+	} err_msg]} {
+	    ns_log Error "im_ganttproject_add_import: Error creating attribute=$column_name: $err_msg"
+	}
 	# Flush all permissions (very slow!)
 	im_permission_flush
     }		
