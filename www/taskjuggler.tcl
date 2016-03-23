@@ -274,8 +274,7 @@ if {[catch {
 # Run TaskJuggler
 # ---------------------------------------------------------------
 
-set pageroot [ns_info pageroot]
-set serverroot [join [lrange [split $pageroot "/"] 0 end-1] "/"]
+set serverroot [acs_root_dir]
 
 
 # Check if exists
