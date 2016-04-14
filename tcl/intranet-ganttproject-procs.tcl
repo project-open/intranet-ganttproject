@@ -455,9 +455,11 @@ ad_proc -public im_gp_check_duplicate_task_names {
 	set task_list {}
 	if {[info exists task_children_hash($parent_wbs)]} { set task_list $task_children_hash($parent_wbs) }
 
+	if {"" eq $name} { continue }
 	if {[lsearch $task_list $name] > -1} {
 	    # We have found a duplicate
-	    # Remember the duplicate in case we have severals...
+	    # Remember the duplicate in case we have several...
+	    ns_log Warning "im_gp_check_duplicate_task_names: Found a duplicate task: wbs=$wbs, parent_wbs=$wbs, name=$name, task_list=$task_list"
 	    set task_duplicate_hash($wbs) $parent_wbs
 	}
 	lappend task_list $name
