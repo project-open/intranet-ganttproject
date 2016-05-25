@@ -46,7 +46,7 @@ set missing_resources_title [lang::message::lookup "" intranet-ganttproject.Miss
 set missing_resources_msg [lang::message::lookup "" intranet-ganttproject.Missing_Resources_msg "The following MS-Project resources could not be found in \]po\[. Please correct the resource names in your MS-Project plan or click on the links below in order to create new resources."]
 
 # Write audit trail
-im_project_audit -project_id $project_id -action before_update
+im_audit -object_id $project_id -action before_update
 
 db_1row project_info "
 	select	project_id as org_project_id,
@@ -244,7 +244,7 @@ template::list::create \
 	}
 
 # Write audit trail
-im_project_audit -project_id $project_id
+im_audit -object_id $project_id
 
 
 

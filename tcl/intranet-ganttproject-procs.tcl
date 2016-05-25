@@ -550,7 +550,7 @@ ad_proc -public im_gp_save_xml {
     set user_id [auth::require_login]
 
     # Write audit trail
-    im_project_audit -project_id $project_id -action before_update
+    im_audit -object_id $project_id -action before_update
 
     db_1row project_info "
 	select	project_id as org_project_id,
@@ -1611,7 +1611,7 @@ ad_proc -public im_gp_save_tasks2 {
 
     # Write audit trail
     if {$task_created_p} { set task_action "after_create" } else { set task_action "after_update" }
-    im_project_audit -object_type "im_timesheet_task" -project_id $task_id -status_id $task_status_id -type_id $task_type_id -action $task_action
+    im_audit -object_id $task_id -action $task_action
 
     return [array get task_hash]
 }
