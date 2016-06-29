@@ -192,7 +192,7 @@ set project_allocations_sql "
 	select	
                 object_id_one AS task_id,
                 object_id_two AS user_id,
-                percentage
+                round(percentage) as percentage			-- SF #866: GP can't parse float values
 	from	acs_rels,im_biz_object_members
 	where
                 acs_rels.rel_id=im_biz_object_members.rel_id AND
