@@ -16,7 +16,7 @@
   <msg key="Export_to_GanttProject">Export nach GanttProject</msg>
   <msg key="Export_to_MS_Projectj_or_ProjectLibre">Export nach MS Project oder ProjectLibre</msg>
   <msg key="Force_start_on_start_date">Start-Bedingung für die gewählten Aufgaben setzen</msg>
-  <msg key="Gantt_Project_Note">In MS Project müssen Sie zunächst den Plan in XLS speichern. Dazu 'Speichern unter' in MS Project anwählen und Dateityp XML-Format anwählen.</msg>
+  <msg key="Gantt_Project_Note">In MS Project müssen Sie zunächst den Plan in XLS speichern. Dazu &#39;Speichern unter&#39; in MS Project anwählen und Dateityp XML-Format anwählen.</msg>
   <msg key="Gantt_Resources">Gantt Ressourcen</msg>
   <msg key="GanttProject">GanttProject</msg>
   <msg key="Ignore_the_issue">Problem für alle Projekte ignorieren</msg>
