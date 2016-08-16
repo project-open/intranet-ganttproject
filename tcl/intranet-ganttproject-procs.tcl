@@ -397,7 +397,7 @@ ad_proc -public im_gp_extract_db_tree_old_bad {
 # -------------------------------------------------------------------
 
 ad_proc -public im_gp_check_duplicate_task_names {
-    {-debug_p 1}
+    {-debug_p 0}
     root_node
 } {
     Check for duplicate task names:
@@ -417,7 +417,7 @@ ad_proc -public im_gp_check_duplicate_task_names {
 		    switch $nodeName {
 			"task" {
 			    # ns_log Notice "im_gp_check_duplicate_task_names: found 'task' node: name=$nodeName, text=$nodeText"
-			    lappend tasks [im_gp_check_duplicate_task_names2 -debug_p 0 $taskchild]
+			    lappend tasks [im_gp_check_duplicate_task_names2 -debug_p $debug_p $taskchild]
 			}
 		    }
 		}
@@ -501,7 +501,7 @@ ad_proc -public im_gp_check_duplicate_task_names {
 } 
 
 ad_proc -public im_gp_check_duplicate_task_names2 {
-    {-debug_p 1}
+    {-debug_p 0}
     task_node
 } {
     Check for duplicate task names:
@@ -624,10 +624,10 @@ ad_proc -public im_gp_save_xml {
 				]
 	array set task_hash $task_hash_array
 	
-	if {$debug_p} {
+	if {0 && $debug_p} {
 	    set debug_html ""
 	    foreach k [lsort [array names task_hash]] { append debug_html "$k	$task_hash($k)\n" }
-	    ad_return_complaint 1 "<pre>$debug_html</pre>"
+	    ad_return_complaint 1 "Debug output after im_gp_save_tasks:<br><pre>$debug_html</pre>"
 	}
 	
 	if {$debug_p} { ns_write "<h2>Pass 2: Saving Dependencies</h2>\n" }
@@ -1038,14 +1038,14 @@ ad_proc -public im_gp_save_tasks {
 	switch [string tolower [$child nodeName]] {
 	    "task" {
 		set task_hash_array [im_gp_save_tasks2 \
-			-create_tasks $create_tasks \
-			-save_dependencies $save_dependencies \
-			-debug_p $debug_p \
-			$child \
-			$main_project_id \
-			$main_project_id \
-			sort_order \
-			[array get task_hash] \
+					 -create_tasks $create_tasks \
+					 -save_dependencies $save_dependencies \
+					 -task_hash_array [array get task_hash] \
+					 -debug_p $debug_p \
+					 -sort_order_name sort_order \
+					 -task_node $child \
+					 -super_project_id $main_project_id \
+					 -main_project_id $main_project_id \
 		]
 		array set task_hash $task_hash_array
 	    }
@@ -1060,23 +1060,24 @@ ad_proc -public im_gp_save_tasks {
 
 
 ad_proc -public im_gp_save_tasks2 {
-    {-debug_p 1}
+    {-debug_p 0}
     -create_tasks
     -save_dependencies
-    task_node 
-    super_project_id 
-    main_project_id
-    sort_order_name
-    task_hash_array
+    -task_hash_array
+    -sort_order_name
+    -task_node 
+    -super_project_id 
+    -main_project_id
 } {
     Stores a single task into the database.
     Recursively descenses the XML tree with tasks and sub-tasks.
-    @param task_node: The tDom "task" node to parse here
-    @param super_project_id: The current super-project where to create new tasks.
-    @param main_project_id: The top-level project.
     @param sort_order_name: How to sort the projects
     @param task_hash_array: A mapping UID->task_id and WBS->task_id
+    @param super_project_id: The current super-project where to create new tasks.
+    @param main_project_id: The top-level project.
+    @param task_node: The tDom "task" node to parse here
 } {
+    ns_log Notice "im_gp_save_tasks2 -create_tasks $create_tasks -save_dependencies $save_dependencies -task_node $task_node -super_project_id $super_project_id -main_project_id $main_project_id -task_hash_array $task_hash_array"
     upvar 1 $sort_order_name sort_order
     incr sort_order
     set my_sort_order $sort_order 
@@ -1089,14 +1090,11 @@ ad_proc -public im_gp_save_tasks2 {
     if {$debug_p} { ns_write "<li>GanttProject($task_node, $super_project_id): '[array get task_hash]'\n" }
     set task_url "/intranet-timesheet2-tasks/new?task_id="
 
-    # GanttProject: The gantt_project_id as returned from 
-    # the XML file. This ID does not correspond to a OpenACS 
-    # object, because GanttProject generates simply consecutive
-    # IDs for new objects.
-    # MS-Project: uid will be overwritten when parsing the
-    # task attributes.
+    # GanttProject: The gantt_project_id as returned from the XML file. This ID does not correspond to an
+    # OpenACS object, because GanttProject generates simply consecutive IDs for new objects.
+    # MS-Project: uid will be overwritten when parsing the task attributes.
+    set ms_project_p 0
     set uid			[$task_node getAttribute id ""]
-
     set task_name		[$task_node getAttribute name ""]
     set start_date		[$task_node getAttribute start ""]
     set duration		[$task_node getAttribute duration ""]
@@ -1129,7 +1127,10 @@ ad_proc -public im_gp_save_tasks2 {
 
         switch [string tolower $nodeName] {
             "name"              { set task_name [string trim $nodeText] }
-	    "uid"               { set uid $nodeText }
+	    "uid"               { 
+		set uid $nodeText 
+		set ms_project_p 1; # remember that we've imported from MS-Project
+	    }
 	    "isnull"		{ set is_null $nodeText }
 	    "duration"          { set duration $nodeText }
 	    "remainingduration" { set remaining_duration $nodeText }
@@ -1269,7 +1270,7 @@ ad_proc -public im_gp_save_tasks2 {
     # MS-Project creates a task with ID=0 and an empty name,
     # probably to represent the top-project. Let's ignore this one:
     ns_log Notice "im_gp_save_tasks2: Found task with task_name='$task_name', uid='$uid'"
-    if {"" == $task_name || 0 == $uid} { 
+    if {$ms_project_p && ("" == $task_name || 0 == $uid)} { 
 	ns_log Notice "im_gp_save_tasks2: Ignoring task with task_name='$task_name', uid=$uid"
 	return 
     }
@@ -1526,14 +1527,14 @@ ad_proc -public im_gp_save_tasks2 {
 	    customproperty { }
 	    task {
 		# Recursive sub-tasks
-		# ToDo: GanttProject: replace super_project_id by the current task_id!?
 		set task_hash_array [im_gp_save_tasks2 \
 			-create_tasks $create_tasks \
 			-save_dependencies $save_dependencies \
-			$taskchild \
-			$super_project_id \
-			sort_order \
-			[array get task_hash] \
+			-task_hash_array [array get task_hash] \
+			-sort_order_name sort_order \
+			-super_project_id $task_id \
+			-main_project_id $main_project_id \
+			-task_node $taskchild \
 		]
 		array set task_hash $task_hash_array
 	    }

@@ -70,6 +70,7 @@ set file_size [file size $tmp_filename]
 # Check for the extension of the uploaded file.
 set gantt_file_extension [string tolower [lindex [split $upload_gan "."] end]]
 
+# !!!
 if {"pod" == $gantt_file_extension} {
     ad_return_complaint 1 "
 	<b>[lang::message::lookup "" intranet-ganttproject.Invalid_OpenProj_File_Type "Invalid OpenProj File Type"]</b>:<br>
