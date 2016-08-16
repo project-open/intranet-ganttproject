@@ -67,25 +67,30 @@ set tmp_filename [ns_queryget upload_gan.tmpfile]
 ns_log Notice "upload-2: tmp_filename=$tmp_filename"
 set file_size [file size $tmp_filename]
 
-# Check for the extension of the uploaded file.
-set gantt_file_extension [string tolower [lindex [split $upload_gan "."] end]]
-
-# !!!
-if {"pod" == $gantt_file_extension} {
-    ad_return_complaint 1 "
-	<b>[lang::message::lookup "" intranet-ganttproject.Invalid_OpenProj_File_Type "Invalid OpenProj File Type"]</b>:<br>
-	[lang::message::lookup "" intranet-ganttproject.Invalid_File_Type "
-		You are trying to upload an OpenProj 'Serana (.pod)' file, which is not supported.<br>
-		Please export your OpenProj file in format <b>'MS-Project 2003 XML (.xml)'</b>.
-	"]
-    "
-    ad_script_abort
-}
-
 if {$max_n_bytes && ($file_size > $max_n_bytes) } {
     ad_return_complaint 1 "Your file is larger than the maximum permissible upload size: 
     [util_commify_number $max_n_bytes] bytes"
     return 0
+}
+
+# Check for the extension of the uploaded file.
+set gantt_file_extension [string tolower [lindex [split $upload_gan "."] end]]
+switch $gantt_file_extension {
+    "gan" - "xml" {
+	ns_log Notice "gantt-upload-2.tcl: found .gan or .xml file - start parsing"
+    }
+    default {
+	ad_return_complaint 1 "
+	<b>[lang::message::lookup "" intranet-ganttproject.Invalid_File_Type "Invalid File Type"]</b>:<br>&nbsp;<br>
+	[lang::message::lookup "" intranet-ganttproject.Invalid_File_Type_msg "
+		You are trying to upload an unsupported file format.<br>
+		This import accepts:<br>
+	        <ul>
+	        <li><b>'.xml'</b> files (XML export from MS-Project 2003 or higher) or 
+	        <li><b>'.gan'</b> files (ProjectLibre or OpenProj).
+	"]"
+	ad_script_abort
+    }
 }
 
 
