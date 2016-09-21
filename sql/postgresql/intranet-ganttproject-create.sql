@@ -491,9 +491,7 @@ declare
 	v_employees		integer;
 BEGIN
 	select group_id into v_employees from groups where group_name = 'Employees';
-
-	select menu_id into v_project_menu
-Intranet Timesheet Task Fixed Task Type	from im_menus where label = 'projects';
+	select menu_id into v_project_menu from im_menus where label = 'projects';
 
 	v_menu := im_menu__new (
 		null,					-- p_menu_id
@@ -522,8 +520,8 @@ drop function inline_0 ();
 
 
 update im_categories
-set category_type = 'Intranet Timesheet Task Fixed Task Type'
-where category_type = 'Intranet Timesheet Task Effort Driven Type';
+set category_type = 'Intranet Gantt Task Fixed Task Type'
+where category_type = 'Intranet Gantt Task Effort Driven Type' or category_type = 'Intranet Timesheet Task Effort Driven Type';
 
 -- Add im_gantt_projects as an extension table to im_timesheet_task
 --
@@ -535,7 +533,7 @@ SELECT im_dynfield_widget__new (
 	null, 'im_dynfield_widget', now(), 0, '0.0.0.0', null,
 	'gantt_fixed_task_type', 'Gantt Fixed Task Type', 'Gantt Fixed Task Type',
 	10007, 'integer', 'im_category_tree', 'integer',
-	'{custom {category_type "Intranet Timesheet Task Fixed Task Type"}}'
+	'{custom {category_type "Intranet Gantt Task Fixed Task Type"}}'
 );
 
 SELECT im_dynfield_attribute_new (
@@ -561,7 +559,7 @@ SELECT im_dynfield_widget__new (
 	null, 'im_dynfield_widget', now(), 0, '0.0.0.0', null,
 	'gantt_scheduling_constraint_type', 'Gantt Scheduling Constraint Type', 'Gantt Scheduling Constraint Type',
 	10007, 'integer', 'im_category_tree', 'integer',
-	'{custom {category_type "Intranet Timesheet Task Scheduling Type"}}'
+	'{custom {category_type "Intranet Gantt Task Scheduling Type"}}'
 );
 
 

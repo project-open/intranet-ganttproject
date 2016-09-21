@@ -118,7 +118,7 @@ ad_proc -public im_taskjuggler_write_task {
 
     # --------------------------------------------------------------
     # Add dependencies to predecessors 
-    # 9650 == 'Intranet Timesheet Task Dependency Type'
+    # 9650 == 'Intranet Gantt Task Dependency Type'
     set dependency_sql "
 	SELECT DISTINCT
 		task_id_two
@@ -172,7 +172,7 @@ ad_proc -public im_taskjuggler_write_task {
 		    append effort_tj "h"
 		}
 		default {
-		    ad_return_complaint 1 "Found invalid UoM for a timesheet task: $uom_id"
+		    ad_return_complaint 1 "Found invalid UoM for a Gantt task: $uom_id"
 		    ad_script_abort
 		}
 	    }

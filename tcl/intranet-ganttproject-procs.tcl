@@ -157,7 +157,7 @@ ad_proc -public im_ganttproject_write_task {
     }
 
     # Add dependencies to predecessors 
-    # 9650 == 'Intranet Timesheet Task Dependency Type'
+    # 9650 == 'Intranet Gantt Task Dependency Type'
     set dependency_sql "
        SELECT	task_id_one AS other_task_id
        FROM	im_timesheet_task_dependencies 
@@ -871,8 +871,8 @@ ad_proc -public im_project_create_dependency {
  	"
     }
 
-    set dependency_type_id [db_string dependency_type "select category_id from im_categories where (category = :depend_type OR aux_int1 = :depend_type) and category_type = 'Intranet Timesheet Task Dependency Type'" -default "9650"]
-    set hardness_type_id [db_string dependency_type "select category_id from im_categories where category = :hardness and category_type = 'Intranet Timesheet Task Dependency Hardness Type'" -default ""]
+    set dependency_type_id [db_string dependency_type "select category_id from im_categories where (category = :depend_type OR aux_int1 = :depend_type) and category_type = 'Intranet Gantt Task Dependency Type'" -default "9650"]
+    set hardness_type_id [db_string dependency_type "select category_id from im_categories where category = :hardness and category_type = 'Intranet Gantt Task Dependency Hardness Type'" -default ""]
     
 
     db_dml update_dependency "
@@ -1144,7 +1144,7 @@ ad_proc -public im_gp_save_tasks2 {
 	    "constrainttype"	{
 		if {"" != $nodeText} {
 		    im_security_alert_check_alphanum -location "im_gp_save_tasks2" -value $nodeText
-		    set scheduling_constraint_id [util_memoize [list db_string contype "select category_id from im_categories where category_type = 'Intranet Timesheet Task Scheduling Type' and aux_int1 = '$nodeText'" -default ""]]
+		    set scheduling_constraint_id [util_memoize [list db_string contype "select category_id from im_categories where category_type = 'Intranet Gantt Task Scheduling Type' and aux_int1 = '$nodeText'" -default ""]]
 		}
 	    }
 	    "constraintdate"	{ set scheduling_constraint_date $nodeText }

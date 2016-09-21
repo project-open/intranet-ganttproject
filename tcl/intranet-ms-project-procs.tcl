@@ -304,7 +304,7 @@ ad_proc -public im_ms_project_write_task {
 	    PercentComplete		{ set value $percent_completed }
 	    ConstraintDate		{ set value $scheduling_constraint_date }
 	    ConstraintType	{
-		# Category "Intranet Timesheet Task Scheduling Type" has MS-Project Values in aux_int1.
+		# Category "Intranet Gantt Task Scheduling Type" has MS-Project Values in aux_int1.
 		set value ""
 		if {"" != $scheduling_constraint_id} {
 		    set value [util_memoize [list db_string contype "select aux_int1 from im_categories where category_id = $scheduling_constraint_id" -default ""]]
