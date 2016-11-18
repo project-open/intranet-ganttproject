@@ -2220,6 +2220,13 @@ ad_proc -public im_ganttproject_resource_component {
 	"]
     }
 
+    # fraber 2016-11-18: This portlet gets slow with very long projects.
+    set portlet_days [db_string portlet_days "select (:end_date::date - :start_date::date)"]
+    if {$portlet_days > 3650} { 
+	return [lang::message::lookup "" intranet-ganttproject.Project_too_long "Project too long: This portlet doesn't support project > 10 years"]
+    }
+
+
     # Adaptive behaviour - limit the size of the component to a summary
     # suitable for the left/right columns of a project.
     if {$auto_open | "" == $top_vars} {
