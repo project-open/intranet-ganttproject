@@ -1197,6 +1197,8 @@ ad_proc -public im_gp_save_tasks2 {
                 continue
             }
 	    "baseline" {
+                # This is some kind of baseline for the assignment.
+	        # ]po[ can't handle this yet.
                 continue
             }
 	    default {
