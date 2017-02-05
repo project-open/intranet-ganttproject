@@ -12,17 +12,6 @@
 -- Add "xml_elements" to project + person
 --
 
-create table im_gantt_projects (
-	project_id		integer
-				constraint im_gantt_projects_project_pk
-				primary key
-				constraint im_gantt_projects_project_id_fk
-				references im_projects,
-	xml_elements		text
-				constraint im_gantt_projects_xml_elements_nn
-				not null
-);
-
 select acs_object_type__create_type (
 	'im_gantt_project',	-- object_type
 	'GanttProject',		-- pretty_name
@@ -50,6 +39,20 @@ update acs_object_types set
 where object_type = 'im_project';
 
 
+create table im_gantt_projects (
+	project_id		integer
+				constraint im_gantt_projects_project_pk
+				primary key
+				constraint im_gantt_projects_project_id_fk
+				references im_projects,
+	xml_elements		text
+				constraint im_gantt_projects_xml_elements_nn
+				not null,
+	xml_id			integer,
+	xml_uid			integer
+);
+
+
 -- Generic URLs to link to an object of type "im_gantt_project"
 -- These URLs are used by the Full-Text Search Engine and the Workflow
 -- to show links to the object type.
@@ -64,17 +67,6 @@ insert into im_biz_object_urls (object_type, url_type, url) values (
 ----------------------------------------------------------------
 -- Extension table for Gantt specific information about resources
 
-create table im_gantt_persons (
-	person_id		integer
-				constraint im_gantt_persons_person_pk
-				primary key
-				constraint im_gantt_persons_person_id_fk
-				references persons,
-	xml_elements		text
-				constraint im_gantt_persons_xml_elements_nn
-				not null
-);
-
 select acs_object_type__create_type (
 	'im_gantt_person',	-- object_type
 	'GanttPerson',		-- pretty_name
@@ -88,7 +80,16 @@ select acs_object_type__create_type (
 	'im_person__name'	-- name_method
 );
 
-
+create table im_gantt_persons (
+	person_id		integer
+				constraint im_gantt_persons_person_pk
+				primary key
+				constraint im_gantt_persons_person_id_fk
+				references persons,
+	xml_elements		text
+				constraint im_gantt_persons_xml_elements_nn
+				not null
+);
 
 
 ----------------------------------------------------------------
@@ -518,15 +519,12 @@ drop function inline_0 ();
 
 
 
-
-update im_categories
-set category_type = 'Intranet Gantt Task Fixed Task Type'
-where category_type = 'Intranet Gantt Task Effort Driven Type' or category_type = 'Intranet Timesheet Task Effort Driven Type';
-
 -- Add im_gantt_projects as an extension table to im_timesheet_task
 --
 insert into acs_object_type_tables (object_type,table_name,id_column)
 values ('im_timesheet_task', 'im_gantt_projects', 'project_id');
+
+
 
 -- Widget to select the Fixed Task Type
 SELECT im_dynfield_widget__new (
@@ -536,9 +534,11 @@ SELECT im_dynfield_widget__new (
 	'{custom {category_type "Intranet Gantt Task Fixed Task Type"}}'
 );
 
+
 SELECT im_dynfield_attribute_new (
         'im_timesheet_task', 'effort_driven_type_id', 'Fixed Task Type', 'gantt_fixed_task_type', 'integer', 'f', 0, 'f', 'im_timesheet_tasks'
 );
+
 
 
 SELECT im_dynfield_attribute_new (
@@ -549,8 +549,6 @@ SELECT im_dynfield_attribute_new (
 update im_categories set aux_int1 = 0 where category_id = 9720;
 update im_categories set aux_int1 = 1 where category_id = 9721;
 update im_categories set aux_int1 = 2 where category_id = 9722;
-
-
 
 
 
