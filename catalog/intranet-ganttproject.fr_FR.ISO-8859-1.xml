@@ -9,7 +9,7 @@
   <msg key="Download_Gantt_File">Télécharger un fichier GanttProject</msg>
   <msg key="Download_OpenProj_File">Télécharger le planning OpenProj</msg>
   <msg key="Gantt_Resources">Ressources de Gantt</msg>
-  <msg key="No_Gantt_preview_available">Aucun diagramme de Gantt disponible à l'affichage</msg>
+  <msg key="No_Gantt_preview_available">Aucun diagramme de Gantt disponible à l&#39;affichage</msg>
   <msg key="OK">OK</msg>
   <msg key="Project_Gantt_Resource_Assignations">Attribution de ressources de Gantt</msg>
   <msg key="Project_Gantt_View">Visualiser un diagramme Gantt</msg>
