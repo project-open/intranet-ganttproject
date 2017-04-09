@@ -249,10 +249,8 @@ set tj_file "taskjuggler.tjp"
 set tj_dir "$project_dir/$tj_folder"
 if {[catch {
     if {![file exists $tj_dir]} {
-	ns_log Notice "exec /bin/mkdir -p $tj_dir"
-	exec /bin/mkdir -p $tj_dir
-	ns_log Notice "exec /bin/chmod ug+w $tj_dir"
-	exec /bin/chmod ug+w $tj_dir
+	file mkdir $tj_dir
+	im_exec chmod ug+w $tj_dir
     } 
 } err_msg]} { 
     ad_return_complaint 1 "<b>Error creating TaskJuggler directory</b>:<br>
@@ -280,8 +278,8 @@ set serverroot [acs_root_dir]
 # Check if exists
 if {[catch {
     set cmd "which taskjuggler"
-    ns_log Notice "exec $cmd"
-    exec bash -c $cmd
+    ns_log Notice "im_exec $cmd"
+    im_exec bash -c $cmd
 } err]} {
     ad_return_complaint 1 "<b>TaskJuggler not Installed</b>:<br>
 	\]project-open\[ couldn't find the 'taskjuggler' executable in your installation.<br>
@@ -296,8 +294,8 @@ if {[catch {
 # Run TaskJuggler and process the input file
 if {[catch {
     set cmd "export HOME=$serverroot; cd $tj_dir; taskjuggler $tj_file"
-    ns_log Notice "exec $cmd"
-    exec bash -c $cmd
+    ns_log Notice "im_exec $cmd"
+    im_exec bash -c $cmd
 } err]} {
 
     # Format the tj content with line numbers
