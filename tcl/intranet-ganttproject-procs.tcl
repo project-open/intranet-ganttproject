@@ -55,17 +55,15 @@ ad_proc -public im_ganttproject_write_subtasks {
     # Get sub-tasks in the right sort_order
     # Don't include projects, they are handled differently.
     set object_list_list [db_list_of_lists sorted_query "
-	select
-		p.project_id as object_id,
+	select	p.project_id as object_id,
 		o.object_type,
 		p.sort_order
-	from	
-		im_projects p,
+	from	im_projects p,
 		acs_objects o
 	where
 		p.project_id = o.object_id
 		and parent_id = :project_id
-                and p.project_type_id = [im_project_type_task]
+                and p.project_type_id in ([im_project_type_task], [im_project_type_gantt])
                 and p.project_status_id not in ([im_project_status_deleted])
 	order by sort_order
     "]
