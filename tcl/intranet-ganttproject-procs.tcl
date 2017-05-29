@@ -111,6 +111,7 @@ ad_proc -public im_ganttproject_write_task {
                 p.end_date::date as end_date,
 		p.end_date::date - p.start_date::date as duration,
                 c.company_name,
+		CASE WHEN p.milestone_p = 't' THEN 'true' ELSE 'false' END as meeting,
 		round(p.percent_completed) as percent_completed		-- GP does needs an integer!
         from    im_projects p
 		LEFT OUTER JOIN im_timesheet_tasks t on (p.project_id = t.task_id),
@@ -140,7 +141,7 @@ ad_proc -public im_ganttproject_write_task {
     $tree_node appendChild $project_node
     $project_node setAttribute id $project_id
     $project_node setAttribute name $project_name
-    $project_node setAttribute meeting "false"
+    $project_node setAttribute meeting $meeting
     $project_node setAttribute start $start_date
     $project_node setAttribute duration $duration
     $project_node setAttribute complete $percent_completed
