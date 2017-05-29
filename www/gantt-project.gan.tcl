@@ -306,5 +306,6 @@ $project_node appendXML "
 
 
 ns_return 200 application/octet-stream [$doc asXML -indent 2 -escapeNonASCII]
+# ns_return 200 "text/xml" [$doc asXML -indent 2 -escapeNonASCII]
 
 

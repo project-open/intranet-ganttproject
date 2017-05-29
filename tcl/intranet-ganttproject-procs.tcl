@@ -66,10 +66,7 @@ ad_proc -public im_ganttproject_write_subtasks {
 		p.project_id = o.object_id
 		and parent_id = :project_id
                 and p.project_type_id = [im_project_type_task]
-                and p.project_status_id not in (
-			[im_project_status_deleted], 
-			[im_project_status_closed]
-		)
+                and p.project_status_id not in ([im_project_status_deleted])
 	order by sort_order
     "]
 
@@ -113,7 +110,8 @@ ad_proc -public im_ganttproject_write_task {
                 p.start_date::date as start_date,
                 p.end_date::date as end_date,
 		p.end_date::date - p.start_date::date as duration,
-                c.company_name
+                c.company_name,
+		round(p.percent_completed) as percent_completed		-- GP does needs an integer!
         from    im_projects p
 		LEFT OUTER JOIN im_timesheet_tasks t on (p.project_id = t.task_id),
 		acs_objects o,
@@ -1873,15 +1871,19 @@ ad_proc -public im_gp_save_allocations {
 
 		# Store extra assignment information into the im_gantt_assigments table
 		set assig_exists_p [db_string assig_exists "select count(*) from im_gantt_assignments where rel_id = :rel_id"]
-		if {!$assig_exists_p} { db_dml insert_assig "insert into im_gantt_assignments (rel_id, xml_elements) values (:rel_id, :xml_elements)" }
+		if {!$assig_exists_p && "" ne $xml_elements} { 
+		    db_dml insert_assig "insert into im_gantt_assignments (rel_id, xml_elements) values (:rel_id, :xml_elements)" 
+		}
 
 		ns_log Notice "im_gp_save_allocations: ctr=$ctr, xml_elements=$xml_elements"
 
+		set komma ","
+		if {0 eq [llength $gantt_assignments_list]} { set komma "" }
 		set ass_sql "
 			update im_gantt_assignments set
 				xml_taskuid = '$task_id',
 				xml_resourceuid = '$resource_id',
-				xml_elements = '$xml_elements',
+				xml_elements = '$xml_elements' $komma
 				[join $gantt_assignments_list ",\n\t\t\t\t"]
 			where rel_id = :rel_id
 		"
