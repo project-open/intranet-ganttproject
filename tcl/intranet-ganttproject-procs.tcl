@@ -1102,7 +1102,7 @@ ad_proc -public im_gp_save_tasks2 {
     set expand_p		[$task_node getAttribute expand ""]
     set end_date		[db_string end_date "select :start_date::date + :duration::integer"]
     set is_null			0
-    set milestone_p		""
+    set milestone_p		[$task_node getAttribute meeting "false"]
     set effort_driven_p		"t"
     set effort_driven_type_id	[im_timesheet_task_effort_driven_type_fixed_work]
     set note			""
@@ -1117,6 +1117,8 @@ ad_proc -public im_gp_save_tasks2 {
 
     set gantt_field_update {}
     set xml_elements {}
+    if {"true" eq $milestone_p} { set milestone_p "t" }
+    if {"false" eq $milestone_p} { set milestone_p "f" }
 
     # Microsoft Project uses tags instead of attributes
     foreach taskchild [$task_node childNodes] {
