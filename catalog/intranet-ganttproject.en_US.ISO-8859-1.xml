@@ -17,6 +17,7 @@
   <msg key="Export_to_MS_Projectj_or_ProjectLibre">Export to MS_Project or ProjectLibre</msg>
   <msg key="Force_start_on_start_date">Set a start constraint for the specified tasks</msg>
   <msg key="Gantt_Project_Note">With GanttProject, it is OK to upload the normal &#39;.gan&#39; file here.</msg>
+  <msg key="Gantt_Resource">Gantt Resources</msg>
   <msg key="Gantt_Resources">Gantt Resources</msg>
   <msg key="GanttProject">GanttProject</msg>
   <msg key="Ignore_the_issue">Ignore the issue for all projects</msg>
