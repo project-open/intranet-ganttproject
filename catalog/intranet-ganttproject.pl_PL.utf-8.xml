@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<message_catalog package_key="intranet-ganttproject" locale="pl_PL" charset="utf-8">
+
+  <msg key="Project_Gantt_View">Diagram Gantta</msg>
+  <msg key="Resource_Planning_Report">Raport Planowania Zasobów</msg>
+  <msg key="Top_Scale">Skala</msg>
+</message_catalog>
