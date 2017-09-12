@@ -5,6 +5,7 @@
   <msg key="Delete_and_Reassign">Löschen und neu zuweisen</msg>
   <msg key="Delete_Gantt_Tasks">Gantt Aufgaben löschen</msg>
   <msg key="Delete_selected_tasks">Ausgewählte Aufgaben löschen</msg>
+  <msg key="Dim_">Dim.</msg>
   <msg key="Dim_day_of_month">Tag</msg>
   <msg key="Dim_day_of_week">Tag der Woche</msg>
   <msg key="Dim_month_of_year">Monat</msg>
@@ -19,6 +20,7 @@
   <msg key="Export_to_ProjectLibre">Export nach ProjectLibre</msg>
   <msg key="Force_start_on_start_date">Start-Bedingung für die gewählten Aufgaben setzen</msg>
   <msg key="Gantt_Project_Note">In MS Project müssen Sie zunächst den Plan in XLS speichern. Dazu &#39;Speichern unter&#39; in MS Project anwählen und Dateityp XML-Format anwählen.</msg>
+  <msg key="Gantt_Resource">Gantt Ressourcen</msg>
   <msg key="Gantt_Resources">Gantt Ressourcen</msg>
   <msg key="GanttProject">GanttProject</msg>
   <msg key="Ignore_the_issue">Problem für alle Projekte ignorieren</msg>
