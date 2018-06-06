@@ -15,13 +15,12 @@
         <summary>Integration with GanttProject</summary>
         <release-date>2016-11-15</release-date>
         <vendor url="http://www.project-open.com/">]project-open[</vendor>
+	<license>]project-open[ Free License (FL)</license>
         <description format="text/plain">This modules provides pages to generate and read GanttProject XML data. This allows a user to view projects in a Gantt view.</description>
         <maturity>0</maturity>
-
         <provides url="intranet-ganttproject" version="4.0.3.0.0"/>
         <requires url="intranet-core" version="3.4.0.0.0"/>
         <requires url="intranet-timesheet2" version="3.4.0.0.0"/>
-
         <callbacks>
         </callbacks>
         <parameters>
