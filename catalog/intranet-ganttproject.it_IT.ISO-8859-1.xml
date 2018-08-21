@@ -8,7 +8,16 @@
   <msg key="Dim_year">Anno</msg>
   <msg key="Download_Gantt_File">Scarica file GanttProject</msg>
   <msg key="Download_OpenProj_File">Scarica tempistica OpenProj</msg>
+  <msg key="Export_to_GanttProject">Export in GanttProject</msg>
+  <msg key="Export_to_MS_Projectj">Export in Microsoft Project</msg>
+  <msg key="Export_to_ProjectLibre">Export in ProjectLibre</msg>
   <msg key="Gantt_Resources">Risorse Gantt</msg>
+  <msg key="Ignore_the_issue">Ignora le issue per tutti i progetti</msg>
+  <msg key="Ignore_the_issue_for_this_project">Ignora le issue per questo progetto</msg>
+  <msg key="Import_from_Gantt_Project">Import da GanttProject</msg>
+  <msg key="Import_from_Microsoft_Project">Import da Microsoft Project</msg>
+  <msg key="Import_from_Project_Libre">Import da Project Libre</msg>
+  <msg key="more_tasks">Altri Tasks</msg>
   <msg key="No_Gantt_preview_available">Anteprima Gantt non disponibile</msg>
   <msg key="OK">OK</msg>
   <msg key="Project_Gantt_Resource">Risorse Gantt progetto</msg>
@@ -16,5 +25,7 @@
   <msg key="Project_Gantt_Schedule">Tempistica Gantt progetto</msg>
   <msg key="Project_Gantt_View">Vista Gantt</msg>
   <msg key="Scheduling">Programma</msg>
+  <msg key="Set_the_start_of_main_project">Aggiorna l&#39;inizio del Main Project a </msg>
   <msg key="Upload_Gantt_File">Carica file Gantt</msg>
+  <msg key="Warnings_portlet_msg">Microsoft (MS-) Project 2003-2010 può comportarsi in modi imprevisti quando si tenta di esportare la pianificazione del progetto. Questo portlet emetterà avvisi e offrirà soluzioni se le attività saranno probabilmente interessate dal &#34;motore di pianificazione&#34; di MS-Project.</msg>
 </message_catalog>
