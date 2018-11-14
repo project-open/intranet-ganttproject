@@ -1830,6 +1830,9 @@ ad_proc -public im_gp_save_allocations {
 			    	"
 			    }
 			}
+			baseline {
+			    # Nothing - ignore
+			}
 			default {
 			    lappend xml_elements $nodeName
 			    lappend gantt_assignments_list "$column_name = '$nodeText'"
