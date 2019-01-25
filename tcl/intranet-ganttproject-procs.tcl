@@ -1111,6 +1111,7 @@ ad_proc -public im_gp_save_tasks2 {
     set scheduling_constraint_id ""
     set scheduling_constraint_date ""
     set outline_number		""
+    set wbs                     ""
     set remaining_duration	""
 
     set gantt_field_update {}
@@ -1139,6 +1140,7 @@ ad_proc -public im_gp_save_tasks2 {
 	    "priority"          { set priority $nodeText }
 	    "notes"             { set note $nodeText }
 	    "outlinenumber"     { set outline_number $nodeText }
+	    "wbs"               { set wbs $nodeText }
 	    "percentcomplete"	{ set percent_completed $nodeText }
 	    "constrainttype"	{
 		if {"" != $nodeText} {
@@ -1353,7 +1355,7 @@ ad_proc -public im_gp_save_tasks2 {
     # GanttProject: The super_project_id is determined by the recursive structure of tasks within task elements
     set parent_id $super_project_id
 
-    # Microsoft Project: The WBS field contains the hierarchy. We have to cut off the last element, though
+    # Microsoft Project: The OutlineNumber field contains the hierarchy. We have to cut off the last element, though
     set outline_list [split $outline_number "\."]
     if {[llength $outline_list] >= 2} {
 	# Cut off the last element of the list and joint together again
@@ -1559,6 +1561,7 @@ ad_proc -public im_gp_save_tasks2 {
 		project_name		= trim(:task_name),
 		project_nr		= trim(:task_nr),
 		project_path		= trim(:task_nr),
+		project_wbs             = :wbs,
 		parent_id		= :parent_id,
 		start_date		= :start_date,
 		end_date		= :end_date,
