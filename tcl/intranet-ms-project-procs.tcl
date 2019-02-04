@@ -147,6 +147,11 @@ ad_proc -public im_ms_project_write_task {
     } else {
 	set base_url "http://[ad_host][ad_port]"
     }
+
+    # Default "Effort Driven" type of task. 
+    # 9720 is default for MS-project, but 9722 is the default for ]po[ semantics...
+    set default_effort_driven_type_id [parameter::get_from_package_key -package_key "intranet-ganttproject" -parameter "DefaultEffortDrivenTypeId" -default "9722"]
+
     set task_view_url "$base_url/intranet-timesheet2-tasks/new?task_id="
     set project_view_url "$base_url/intranet/projects/view?project_id="
 
@@ -254,7 +259,7 @@ ad_proc -public im_ms_project_write_task {
 		regsub -all "\t" $value " " value
 	    				}
 	    Type			{ 
-                if {![info exists effort_driven_type_id] || "" == $effort_driven_type_id} {set effort_driven_type_id 9720}
+                if {![info exists effort_driven_type_id] || "" == $effort_driven_type_id} {set effort_driven_type_id $default_effort_driven_type_id }
 		set value [util_memoize [list db_string type "select aux_int1 from im_categories where category_id = $effort_driven_type_id" -default ""]]
 		if {"" == $value} { 
 		    ad_return_complaint 1 "im_ms_project_write_task: Unknown fixed task type '$effort_driven_type_id'" 
