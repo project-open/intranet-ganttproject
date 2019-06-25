@@ -154,17 +154,20 @@ ad_proc -public im_ganttproject_write_task {
     }
 
     # Add dependencies to predecessors 
-    # 9650 == 'Intranet Gantt Task Dependency Type'
     set dependency_sql "
-       SELECT	task_id_one AS other_task_id
-       FROM	im_timesheet_task_dependencies 
-       WHERE    task_id_two = :task_id AND dependency_type_id=9650
+       SELECT	ttd.task_id_one AS other_task_id,
+       		c.aux_int1 as ms_dependency_type
+       FROM	im_timesheet_task_dependencies ttd
+       		LEFT OUTER JOIN im_categories c ON (ttd.dependency_type_id = c.category_id)
+       WHERE    ttd.task_id_two = :task_id
     "
+    # ad_return_complaint 1 [im_ad_hoc_query -format html $dependency_sql]
     db_foreach dependency $dependency_sql {
+        if {!($ms_dependency_type in {"0" "1" "2" "3"})} { set ms_dependency_type 1 }
 	set depend_node [$doc createElement depend]
 	$project_node appendChild $depend_node
 	$depend_node setAttribute id $other_task_id
-	$depend_node setAttribute type 2
+	$depend_node setAttribute type $ms_dependency_type
 	$depend_node setAttribute difference 0
 	$depend_node setAttribute hardness "Strong"
     }
@@ -829,7 +832,7 @@ ad_proc -public im_gp_save_xml {
 ad_proc -public im_project_create_dependency { 
     -task_id_one 
     -task_id_two 
-    {-depend_type "2"}
+    {-depend_type "1"}
     {-difference "0"}
     {-hardness "Strong"}
     -task_hash_array
@@ -841,6 +844,11 @@ ad_proc -public im_project_create_dependency {
             <depend id="2" type="2" difference="0" hardness="Strong"/>
             <customproperty taskproperty-id="tpc0" value="nothing..." />
           </task>
+    depend_type:
+	0: FF (finish-to-finish)
+	1: FS (finish-to-start) (default)
+	2: SF (start-to-finish)
+	3: SS (start-to-start)
 } {
     ns_log Notice "im_ganttproject_create_dependency: task_id_one=$task_id_one, task_id_two=$task_id_two, depend-type=$depend_type, difference=$difference, hardness=$hardness"
     array set task_hash $task_hash_array
@@ -868,9 +876,11 @@ ad_proc -public im_project_create_dependency {
  	"
     }
 
-    set dependency_type_id [db_string dependency_type "select category_id from im_categories where (category = :depend_type OR aux_int1 = :depend_type) and category_type = 'Intranet Gantt Task Dependency Type'" -default "9650"]
-    set hardness_type_id [db_string dependency_type "select category_id from im_categories where category = :hardness and category_type = 'Intranet Gantt Task Dependency Hardness Type'" -default ""]
-    
+    # Dependency type: 0=FF, 1=FS, 2=SF, 3=SS, default is 1=FS
+    set dependency_type_id [db_string dependency_type "select category_id from im_categories where aux_int1 = :depend_type and category_type = 'Intranet Timesheet Task Dependency Type'" -default "9662"]
+    # Hardness type: 9550=Hard
+    set hardness_type_id [db_string dependency_type "select category_id from im_categories where category = :hardness and category_type = 'Intranet Timesheet Task Dependency Hardness Type'" -default "9550"]
+    # ad_return_complaint 1 "depend_type=$depend_type, dependency_type_id=$dependency_type_id"
 
     db_dml update_dependency "
 	update im_timesheet_task_dependencies set

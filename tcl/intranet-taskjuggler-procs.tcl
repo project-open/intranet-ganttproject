@@ -118,19 +118,21 @@ ad_proc -public im_taskjuggler_write_task {
 
     # --------------------------------------------------------------
     # Add dependencies to predecessors 
-    # 9650 == 'Intranet Gantt Task Dependency Type'
     set dependency_sql "
 	SELECT DISTINCT
-		task_id_two
+		ttd.task_id_two,
+		ttd.dependency_type_id
 	FROM	im_timesheet_task_dependencies ttd,
 		im_projects p
 	WHERE	ttd.task_id_two = p.project_id AND
 		task_id_one = :task_id AND 
-		dependency_type_id=9650 AND 
 		task_id_two <> :task_id
     "
     set dependency_ctr 0
     db_foreach dependency $dependency_sql {
+
+        # ToDo: Verify that there is only end-to-start dependency types in TaskJuggler
+
 	set task_path [im_taskjuggler_task_path $task_id_two]
 	append tj "${indent}\tdepends $task_path		# $task_id_two\n"
 	incr dependency_ctr

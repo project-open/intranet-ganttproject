@@ -427,20 +427,23 @@ ad_proc -public im_openproj_write_task {
 		set predecessors_done 1
 
 		# Add dependencies to predecessors 
-		# 9650 == 'Intranet Timesheet Task Dependency Type'
 		set dependency_sql "
-	    	   SELECT DISTINCT task_id_two
-		   FROM	im_timesheet_task_dependencies 
+	    	   SELECT DISTINCT
+			ttd.task_id_two,
+			c.aux_int1 as ms_dependency_type
+		   FROM
+			im_timesheet_task_dependencies ttd
+			LEFT OUTER JOIN im_categories c ON (ttd.dependency_type_id = c.category_id)
 	    	   WHERE	
                       task_id_one = :task_id 
-                      AND dependency_type_id=9650
-                      AND task_id_two<>:task_id
+                      AND task_id_two <> :task_id
                 "
 		db_foreach dependency $dependency_sql {
+		    if {!($ms_dependency_type in {"0" "1" "2" "3"})} { set ms_dependency_type 1 }
 		    $task_node appendXML "
                        <PredecessorLink>
                          <PredecessorUID>$task_id_two</PredecessorUID>
-                         <Type>1</Type>
+                         <Type>$ms_dependency_type</Type>
                        </PredecessorLink>
                     "
 		}
