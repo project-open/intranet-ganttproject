@@ -834,6 +834,7 @@ ad_proc -public im_project_create_dependency {
     -task_id_two 
     {-depend_type "1"}
     {-difference "0"}
+    {-difference_format ""}
     {-hardness "Strong"}
     -task_hash_array
 } {
@@ -882,10 +883,21 @@ ad_proc -public im_project_create_dependency {
     set hardness_type_id [db_string dependency_type "select category_id from im_categories where category = :hardness and category_type = 'Intranet Timesheet Task Dependency Hardness Type'" -default "9550"]
     # ad_return_complaint 1 "depend_type=$depend_type, dependency_type_id=$dependency_type_id"
 
+
+
+    # LagFormat can be: 3=m, 4=em, 5=h, 6=eh, 7=d, 8=ed, 9=w, 10=ew, 
+    # 11=mo, 12=emo, 19=%, 20=e%, 35=m?, 36=em?, 37=h?, 38=eh?, 39=d?, 
+    # 40=ed?, 41=w?, 42=ew?, 43=mo?, 44=emo?, 51=%? and 52=e%?
+    #
+    # Intranet Gantt Task Dependency Lag Format
+    # follows MS numbering, but starting with 9800.
+    set difference_format_id [expr 9800 + $difference_format]
+
     db_dml update_dependency "
 	update im_timesheet_task_dependencies set
 		dependency_type_id = :dependency_type_id,
 		difference = :difference,
+                difference_format_id = :difference_format_id,
 		hardness_type_id = :hardness_type_id
 	where	task_id_one = :task_id_one
 		and task_id_two = :task_id_two
@@ -1499,19 +1511,25 @@ ad_proc -public im_gp_save_tasks2 {
 			    "PredecessorUID" { set linkid [$attrtag text] }
 			    "Type"           { set linktype [$attrtag text] }
 			    "LinkLag"        { set link_lag [$attrtag text] }
-			    "LagFormat"      { set link_lag_format [$attrtag text] }
+			    "LagFormat"      { 
+                                set link_lag_format [$attrtag text] 
+                                # LagFormat can be: 3=m, 4=em, 5=h, 6=eh, 7=d, 8=ed, 9=w, 10=ew, 
+                                # 11=mo, 12=emo, 19=%, 20=e%, 35=m?, 36=em?, 37=h?, 38=eh?, 39=d?, 
+                                # 40=ed?, 41=w?, 42=ew?, 43=mo?, 44=emo?, 51=%? and 52=e%?
+                            }
 			}
 		    }
 
-		    # Calculate "difference" from LinkLag and LagFormat.
-		    # ToDo: Take care of LagFormat
-		    set difference_seconds [expr {$link_lag * 1.0}]
+		    # Calculate "difference" from LinkLag. LinkLag is specified
+                    # in "thenth of minutes", which is 6 seconds...
+		    set difference_seconds [expr $link_lag * 6.0]
 
 		    im_project_create_dependency \
 			-task_id_one $task_id \
 			-task_id_two $linkid \
 			-depend_type $linktype \
 			-difference $difference_seconds \
+                        -difference_format $link_lag_format \
 			-task_hash_array [array get task_hash]
 		}
 	    }
