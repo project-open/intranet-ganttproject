@@ -34,6 +34,7 @@ ad_proc -public im_ms_project_calculate_actualstart {
         WHERE  ttd.task_id_one = :task_id and ttd.task_id_two = p.project_id and
                ttd.task_id_two <> :task_id
     } {
+	if {9650 eq $dependency_type_id} { set dependency_type_id 9660 }
         switch $dependency_type_id {
             9660 {
                 set actual_start_date ""
