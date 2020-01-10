@@ -25,7 +25,6 @@
   <msg key="Project_Gantt_Schedule">Tempistica Gantt progetto</msg>
   <msg key="Project_Gantt_View">Vista Gantt</msg>
   <msg key="Scheduling">Programma</msg>
-  <msg key="Set_the_start_of_main_project">Aggiorna l&#39;inizio del Main Project a </msg>
   <msg key="Upload_Gantt_File">Carica file Gantt</msg>
   <msg key="Warnings_portlet_msg">Microsoft (MS-) Project 2003-2010 può comportarsi in modi imprevisti quando si tenta di esportare la pianificazione del progetto. Questo portlet emetterà avvisi e offrirà soluzioni se le attività saranno probabilmente interessate dal &#34;motore di pianificazione&#34; di MS-Project.</msg>
 </message_catalog>
