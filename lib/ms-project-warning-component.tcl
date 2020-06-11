@@ -598,8 +598,7 @@ if {0 && ![info exists ignore_hash($warning_key)]} {
 set warning_key "fix-tasks-with-unassigned-skill-profiles"
 if {![info exists ignore_hash($warning_key)]} {
 
-    set url_vars_set [ns_conn form]
-    set filter_skill_profile_id [ns_set get $url_vars_set "filter_skill_profile_id"]
+    set filter_skill_profile_id [im_opt_val -limit_to "filter_skill_profile_id"]
     set filter_skill_profile_sql ""
     if {"" != $filter_skill_profile_id} {
 	set filter_skill_profile_sql "and p.project_id in (
