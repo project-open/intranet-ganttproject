@@ -1113,16 +1113,16 @@ ad_proc -public im_gp_save_tasks2 {
     # OpenACS object, because GanttProject generates simply consecutive IDs for new objects.
     # MS-Project: uid will be overwritten when parsing the task attributes.
     set ms_project_p 0
-    set uid			[$task_node getAttribute id ""]
-    set task_name		[$task_node getAttribute name ""]
-    set start_date		[$task_node getAttribute start ""]
-    set duration		[$task_node getAttribute duration ""]
-    set percent_completed	[$task_node getAttribute complete "0"]
-    set priority		[$task_node getAttribute priority ""]
-    set expand_p		[$task_node getAttribute expand ""]
+    set uid			[ns_quotehtml [$task_node getAttribute id ""]]
+    set task_name		[ns_quotehtml [$task_node getAttribute name ""]]
+    set start_date		[ns_quotehtml [$task_node getAttribute start ""]]
+    set duration		[ns_quotehtml [$task_node getAttribute duration ""]]
+    set percent_completed	[ns_quotehtml [$task_node getAttribute complete "0"]]
+    set priority		[ns_quotehtml [$task_node getAttribute priority ""]]
+    set expand_p		[ns_quotehtml [$task_node getAttribute expand ""]]
     set end_date		[db_string end_date "select :start_date::date + :duration::integer"]
     set is_null			0
-    set milestone_p		[$task_node getAttribute meeting "false"]
+    set milestone_p		[ns_quotehtml [$task_node getAttribute meeting "false"]]
     set effort_driven_p		"t"
     set effort_driven_type_id	[im_timesheet_task_effort_driven_type_fixed_work]
     set note			""
@@ -1144,7 +1144,7 @@ ad_proc -public im_gp_save_tasks2 {
     # Microsoft Project uses tags instead of attributes
     foreach taskchild [$task_node childNodes] {
 	set nodeName [$taskchild nodeName]
-	set nodeText [$taskchild text]
+	set nodeText [ns_quotehtml [$taskchild text]]
 	# ns_log Notice "im_gp_save_tasks2: $task_name: nodeName=$nodeName, nodeText=$nodeText"
 
         switch [string tolower $nodeName] {
