@@ -2186,6 +2186,11 @@ ad_proc -public im_ganttproject_resource_component {
     @param customer_id Id of customer's projects to show
     @param user_name_link_opened List of users with details shown
 } {
+    # Skip if this is a sub-project
+    set parent_id [db_string parent_id "select parent_id from im_projects where project_id = :project_id"]
+    if {"" ne $parent_id} { return "" }
+
+
     set rowclass(0) "roweven"
     set rowclass(1) "rowodd"
     set sigma "&Sigma;"
