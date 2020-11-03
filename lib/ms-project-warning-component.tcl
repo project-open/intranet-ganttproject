@@ -166,7 +166,7 @@ if {![info exists ignore_hash($warning_key)]} {
     
     if {$task_html ne ""} {
 	set task_header "<tr class=rowtitle>\n"
-	append task_header "<td class=rowtitle><input type=checkbox name=_dummy onclick=acs_ListCheckAll('task_with_empty_start_end_date',this.checked) checked></td>\n"
+	append task_header "<td class=rowtitle><input id=list_check_all1 type=checkbox name=_dummy checked></td>\n"
 	append task_header "<td class=rowtitle>[lang::message::lookup "" intranet-ganttproject.Task "Task"]</td>\n"
 	append task_header "</tr>\n"
 	
@@ -378,7 +378,7 @@ if {![info exists ignore_hash($warning_key)]} {
     
     if {$task_html ne ""} {
 	set task_header "<tr class=rowtitle>\n"
-	append task_header "<td class=rowtitle><input type=checkbox name=_dummy onclick=acs_ListCheckAll('task_without_start_constraint',this.checked) checked></td>\n"
+	append task_header "<td class=rowtitle><input id=list_check_all1 type=checkbox name=_dummy checked></td>\n"
 	append task_header "<td class=rowtitle>[lang::message::lookup "" intranet-ganttproject.Task "Task"]</td>\n"
 	append task_header "</tr>\n"
 	
@@ -545,7 +545,7 @@ if {0 && ![info exists ignore_hash($warning_key)]} {
     
     if {$task_html ne ""} {
 	set task_header "<tr class=rowtitle>\n"
-	append task_header "<td class=rowtitle align=center><input type=checkbox name=_dummy onclick=acs_ListCheckAll('task_with_overallocation',this.checked) checked></td>\n"
+	append task_header "<td class=rowtitle align=center><input id=list_check_all3 type=checkbox name=_dummy checked></td>\n"
 	append task_header "<td class=rowtitle align=center>[lang::message::lookup "" intranet-ganttproject.Task "Task"]</td>\n"
 	append task_header "<td class=rowtitle align=center>[lang::message::lookup "" intranet-ganttproject.Start "Start Date/Time"]</td>\n"
 	append task_header "<td class=rowtitle align=center>[lang::message::lookup "" intranet-ganttproject.End "End Date/Time"]</td>\n"
@@ -748,7 +748,7 @@ if {![info exists ignore_hash($warning_key)]} {
     
     if {$task_html ne ""} {
 	set task_header "<tr class=rowtitle>\n"
-	append task_header "<td class=rowtitle align=center><input type=checkbox name=_dummy onclick=acs_ListCheckAll('task_with_overallocation',this.checked) checked></td>\n"
+	append task_header "<td class=rowtitle align=center><input type=checkbox id=list_check_all4 name=_dummy checked></td>\n"
 	append task_header "<td class=rowtitle align=center>[lang::message::lookup "" intranet-ganttproject.Task "Task Name"]</td>\n"
 	append task_header "<td class=rowtitle align=center>[lang::message::lookup "" intranet-ganttproject.Start "Start"]</td>\n"
 	append task_header "<td class=rowtitle align=center>[lang::message::lookup "" intranet-ganttproject.End "End"]</td>\n"

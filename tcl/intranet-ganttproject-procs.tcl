@@ -575,11 +575,24 @@ ad_proc -public im_gp_save_xml {
         "
 	ad_script_abort
     }
-
     set root_node [$doc documentElement]
 
-    set format "gantt"
+    set root_name [$root_node nodeName]
+    if {"Project" ne $root_name} {
+	ad_return_complaint 1 "
+	<b>[lang::message::lookup "" intranet-ganttproject.Invalid_XML_Tag "Invalid XML Format / Main Tag"]</b>:<br>&nbsp;<br>
+	[lang::message::lookup "" intranet-ganttproject.Invalid_XML_Tag_Error "
+		Your XML file starts with the tag '%root_name%'.<br>
+                However, Microsoft Project produces files with the first tag 'Project'.<br>
+                So your file has probably been created by a different application.<br>
+                This format is currently not supported by &#93;project-open&#91;.<br>
+                &nbsp;<br>
+	"]
+        "
+	ad_script_abort
+    }
 
+    set format "gantt"
     if {[string equal [$root_node nodeName] "Project"] 
 	&& [string equal [$root_node getAttribute "xmlns" ""] \
 		"http://schemas.microsoft.com/project"]} {
