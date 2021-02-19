@@ -69,7 +69,7 @@
 <ul>
         <li><a href="http://ganttproject.biz/">Download GanttProject Software</a></li>
 	<li><a href="http://openproj.org/openproj">Download OpenProj Software</a></li>
-	<li><a href="http://www.microsoft.com/project/">Info about Microsoft Office Project</a></li>
+	<li><a href="https://www.microsoft.com/project/">Info about Microsoft Office Project</a></li>
 
 </ul>
 <%= [im_box_footer] %>

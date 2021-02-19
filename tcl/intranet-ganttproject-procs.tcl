@@ -3,7 +3,7 @@
 # Copyright (C) 2003 - 2009 ]project-open[
 #
 # All rights reserved. Please check
-# http://www.project-open.com/license/ for details.
+# https://www.project-open.com/license/ for details.
 
 ad_library {
     Integrate ]project-open[ tasks and resource assignations
@@ -662,7 +662,7 @@ ad_proc -public im_gp_save_xml {
 	
 	global errorInfo
 	set stack_trace $errorInfo
-	set latest_version_url "http://www.project-open.com/en/developers-cvs-checkout"
+	set latest_version_url "https://www.project-open.com/en/developers-cvs-checkout"
 	set params [list]
 	lappend params [list stacktrace $stack_trace]
 	lappend params [list error_type gantt_import]
