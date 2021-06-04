@@ -49,7 +49,7 @@ if {![im_permission $user_id "view_projects_all"]} {
 # ---------------------------------------------------------------
 
 set sub_navbar ""
-set main_navbar_label "projects"
+set main_navbar_label "portfolio"
 
 set project_menu ""
 if {[llength $project_id] == 1} {
