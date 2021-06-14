@@ -48,7 +48,7 @@
   <msg key="Software">Software</msg>
   <msg key="Task">Task</msg>
   <msg key="Task_Name">Task Name</msg>
-  <msg key="Task_Nr">Task Nr</msg>
+  <msg key="Task_Nr">Task No</msg>
   <msg key="Tasks_with_empty_start_end_date">Tasks With Empty Start- or End Date</msg>
   <msg key="Tasks_with_empty_start_end_date_assign">Please set the start- and end date of the tasks.</msg>
   <msg key="Tasks_with_empty_start_end_date_msg">The following tasks don&#39;t have have a start- or end date defined.</msg>
