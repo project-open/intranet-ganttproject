@@ -16,7 +16,7 @@ select acs_object_type__create_type (
 	'im_gantt_project',	-- object_type
 	'GanttProject',		-- pretty_name
 	'GanttProjects',	-- pretty_plural
-	'im_project',		-- supertype
+	'im_timesheet_task',		-- supertype
 	'im_gantt_projects',	-- table_name
 	'project_id',		-- id_column
 	'im_gantt_project',	-- package_name
